@@ -10,7 +10,7 @@ public class websocketlistener : MonoBehaviour
     /// Semaphore code and docs
     /// solution >  https://stackoverflow.com/a/21163280
     /// SemaphoreSlim class > https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim?view=net-8.0
-    ///
+    /// 
     /// </summary>
     private static SemaphoreSlim semaphore = new SemaphoreSlim(1);
 

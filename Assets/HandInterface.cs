@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -28,8 +29,35 @@ public struct HandPoints
 
     public void PointsFromJson(string json)
     {
-        Debug.Log(json);
+        // Debug.Log(json);
         this = JsonUtility.FromJson<HandPoints>(json);
+
+    }
+
+    // allows iteration over the struct
+    public IEnumerable<Vector3> GetPoints()
+    {
+        yield return point0;
+        yield return point1;
+        yield return point2;
+        yield return point3;
+        yield return point4;
+        yield return point5;
+        yield return point6;
+        yield return point7;
+        yield return point8;
+        yield return point9;
+        yield return point10;
+        yield return point11;
+        yield return point12;
+        yield return point13;
+        yield return point14;
+        yield return point15;
+        yield return point16;
+        yield return point17;
+        yield return point18;
+        yield return point19;
+        yield return point20;
     }
 
 }
@@ -39,7 +67,9 @@ public class HandInterface : MonoBehaviour
     HandPoints HandPoints;
 
     // Multiplier for raw position data
-    const int distanceMultiplier = 10;
+    // stops points from being so clustered
+    // TODO: fix offset caused by multiplier
+    const int distanceMultiplier = -10;
 
     [Header("Hand Transforms")]
     public Hand handTransforms;
@@ -47,27 +77,14 @@ public class HandInterface : MonoBehaviour
     public void UpdateHandPositions(string json)
     {
         HandPoints.PointsFromJson(json);
-        handTransforms.point0.position = HandPoints.point0 * distanceMultiplier;
-        handTransforms.point1.position = HandPoints.point1 * distanceMultiplier;
-        handTransforms.point2.position = HandPoints.point2 * distanceMultiplier;
-        handTransforms.point3.position = HandPoints.point3 * distanceMultiplier;
-        handTransforms.point4.position = HandPoints.point4 * distanceMultiplier;
-        handTransforms.point5.position = HandPoints.point5 * distanceMultiplier;
-        handTransforms.point6.position = HandPoints.point6 * distanceMultiplier;
-        handTransforms.point7.position = HandPoints.point7 * distanceMultiplier;
-        handTransforms.point8.position = HandPoints.point8 * distanceMultiplier;
-        handTransforms.point9.position = HandPoints.point9 * distanceMultiplier;
-        handTransforms.point10.position = HandPoints.point10 * distanceMultiplier;
-        handTransforms.point11.position = HandPoints.point11 * distanceMultiplier;
-        handTransforms.point12.position = HandPoints.point12 * distanceMultiplier;
-        handTransforms.point13.position = HandPoints.point13 * distanceMultiplier;
-        handTransforms.point14.position = HandPoints.point14 * distanceMultiplier;
-        handTransforms.point15.position = HandPoints.point15 * distanceMultiplier;
-        handTransforms.point16.position = HandPoints.point16 * distanceMultiplier;
-        handTransforms.point17.position = HandPoints.point17 * distanceMultiplier;
-        handTransforms.point18.position = HandPoints.point18 * distanceMultiplier;
-        handTransforms.point19.position = HandPoints.point19 * distanceMultiplier;
-        handTransforms.point20.position = HandPoints.point20 * distanceMultiplier;
 
+        // iterating through the received positions to update the in-game transforms
+        int index = 0;
+        foreach (Vector3 point in HandPoints.GetPoints())
+        {
+            // Debug.Log(point);
+            handTransforms.SetChildPosition(index, point * distanceMultiplier);
+            index++;
+        }
     }
 }
