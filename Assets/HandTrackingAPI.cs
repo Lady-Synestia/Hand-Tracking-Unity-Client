@@ -56,6 +56,7 @@ namespace HandTrackingModule
             /// </summary>
             // Event is used to notify eventManager when hand data is received
             public event EventHandler<DataReceivedEventArgs> DataReceivedEvent;
+
             private WebSocketListener WSListener = new();
             private ReceiveMode ReceiveMode = ReceiveMode.Points;
 
