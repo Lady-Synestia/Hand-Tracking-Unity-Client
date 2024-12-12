@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class Hand : MonoBehaviour
 {
     private Transform[] childTransforms;

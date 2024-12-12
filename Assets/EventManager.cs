@@ -1,11 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EventManager : MonoBehaviour
 {
     [Header("Websocket Listener Script")]
-    public WebSocketListener wsListener;
+    public HandTrackingAPI handTrackingAPI;
 
     [Header("HandController")]
     public HandController handController;
@@ -14,11 +12,11 @@ public class EventManager : MonoBehaviour
     void Start()
     {
         // "subscribing" the function WebsocketDataReceived() to the event HandPointsChanged
-        wsListener.HandPointsChanged += WebsocketDataReceived;
+        handTrackingAPI.HandPointsChanged += WebsocketDataReceived;
     }
 
     void WebsocketDataReceived(object receiver, HandPointsChangedEventArgs e)
     {
-        handController.UpdateHandPositions(e.JsonHandStrings);
+        handController.UpdateHandPositions(e.ModeOfDataReceived);
     }
 }
