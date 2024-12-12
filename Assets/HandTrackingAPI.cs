@@ -41,6 +41,12 @@ namespace HandTrackingModule
             Direction
         }
 
+        public enum HandType
+        {
+            Right,
+            Left
+        }
+
         public class HandTrackingAPI : MonoBehaviour
         {
             /// <summary>
@@ -50,10 +56,12 @@ namespace HandTrackingModule
             /// </summary>
             // Event is used to notify eventManager when hand data is received
             public event EventHandler<DataReceivedEventArgs> DataReceivedEvent;
-
-            private WebSocketListener WSListener = new WebSocketListener();
-            private HandData handData = new HandData();
+            private WebSocketListener WSListener = new();
             private ReceiveMode ReceiveMode = ReceiveMode.Points;
+
+            // data for each hand
+            private HandData RHandData = new(HandType.Right);
+            private HandData LHandData = new(HandType.Left);
 
             // Start is called before the first frame update
             void Start()
@@ -71,10 +79,25 @@ namespace HandTrackingModule
                 WSListener.ReceiveData();
             }
 
+            private void OnApplicationQuit()
+            {
+                WSListener.CloseSocket();
+            }
+
             private void DataReceived(string json)
             {
-
-                handData.SetFromJson(json);
+                // splitting received string into array of substrings
+                string[] jsonStrings = json.Trim('[', ']').Split("], [");
+                
+                switch (jsonStrings.Length)
+                {
+                    case 2:
+                        LHandData.SetFromJson(jsonStrings[1]);
+                        goto case 1;
+                    case 1:
+                        RHandData.SetFromJson(jsonStrings[0]);
+                        break;
+                }
 
                 // While testing, just passing the single string into the array
                 // Once complete the strings will have to be extracted from the received data
@@ -91,7 +114,7 @@ namespace HandTrackingModule
                 ReceiveMode = mode;
             }
 
-            public Vector3 GetPoint(string point = default, int index = default)
+            public Vector3 GetPoint(HandType hand = HandType.Right, string point = default, int index = default)
             {
                 // allows passing of either string or int to find the point
                 if (point == default)
@@ -106,7 +129,15 @@ namespace HandTrackingModule
                     }
                 }
 
-                return handData.GetPoint(point);
+                switch (hand)
+                {
+                    case HandType.Right:
+                        return RHandData.GetPoint(point);
+                    case HandType.Left:
+                        return LHandData.GetPoint(point);
+                    default:
+                        return new Vector3();
+                }
             }
         }
 
@@ -187,13 +218,21 @@ namespace HandTrackingModule
         // temp structure while refactoring
         public HandPoints handPoints;
 
-        private Dictionary<string, Vector3> pointsDict = new Dictionary<string, Vector3> { };
+        private Dictionary<string, Vector3> pointsDict = new();
+        public HandType Hand { get; }
         public Gesture Gesture { get; }
         public Direction Direction { get; }
 
+        public HandData(HandType hand) { Hand = hand; }
+
         public Vector3 GetPoint(string point)
         {
-            return pointsDict[point];
+            // only returns value if it is contained by the dictionary
+            if (pointsDict.ContainsKey(point)) 
+            { 
+                return pointsDict[point]; 
+            }
+            return new Vector3();
         }
 
         public void SetFromJson(string json)
@@ -224,15 +263,15 @@ namespace HandTrackingModule
         /// </summary>
         // Semaphore is used to stop too many processes running in the thread pool
         // In this case there should only be one data receival running at once
-        private static SemaphoreSlim semaphore = new SemaphoreSlim(1);
+        private static SemaphoreSlim semaphore = new(1);
 
         /// <summary>
         /// websockets docs
         /// websocket support > https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets
         /// ClientWebSocket class > https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket?view=net-9.0
         /// </summary>
-        readonly ClientWebSocket ws = new ClientWebSocket();
-        readonly Uri uri = new Uri("ws://localhost:8765");
+        readonly ClientWebSocket ws = new();
+        readonly Uri uri = new("ws://localhost:8765");
         readonly byte[] buffer = new byte[4096];
 
         string JsonString;
@@ -253,16 +292,17 @@ namespace HandTrackingModule
                     var result = await ws.ReceiveAsync(buffer, default);
 
                     JsonString = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    DataReceivedDel(JsonString);
+                    
                 }
                 catch (NullReferenceException e ) 
                 { 
-                    Debug.LogWarning(e); 
+                    Debug.LogWarning($"Connection Error: {e.Message}\n{e.InnerException.Message}"); 
                 }
                 finally
                 {
                     semaphore.Release();
                 }
+                DataReceivedDel(JsonString);
             }
         }
 

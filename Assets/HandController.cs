@@ -4,7 +4,8 @@ using HandTrackingModule.API;
 public class HandController : MonoBehaviour
 {
     [Header("Hand Transforms")]
-    public Hand handTransforms;
+    public Hand RightHand;
+    public Hand LeftHand;
 
     [Header("HandTrackingAPI")]
     public HandTrackingAPI handTrackingAPI;
@@ -21,10 +22,12 @@ public class HandController : MonoBehaviour
             // iterating through the stored positions to update the in-game transforms
             for (int i = 0; i < 21; i++) 
             {
-                // getting point from api by index
-                var point = handTrackingAPI.GetPoint(index: i);
+                // getting points from api by index
+                var rpoint = handTrackingAPI.GetPoint(HandType.Right, index: i);
+                var lpoint = handTrackingAPI.GetPoint(HandType.Left, index: i);
                 // Debug.Log(point);
-                handTransforms.SetChildPosition(i, point);
+                RightHand.SetChildPosition(i, rpoint);
+                LeftHand.SetChildPosition(i, lpoint);
             }
         }
     }
