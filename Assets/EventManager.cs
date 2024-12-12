@@ -1,9 +1,8 @@
 using UnityEngine;
+using HandTrackingModule.API;
 
 public class EventManager : MonoBehaviour
 {
-    [Header("Websocket Listener Script")]
-    public HandTrackingAPI handTrackingAPI;
 
     [Header("HandController")]
     public HandController handController;
@@ -11,11 +10,11 @@ public class EventManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        // "subscribing" the function WebsocketDataReceived() to the event HandPointsChanged
-        handTrackingAPI.HandPointsChanged += WebsocketDataReceived;
+        // "subscribing" the function WebsocketDataReceived() to the event DataReceivedEvent
+        handController.handTrackingAPI.DataReceivedEvent += WebsocketDataReceived;
     }
 
-    void WebsocketDataReceived(object receiver, HandPointsChangedEventArgs e)
+    void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
     {
         handController.UpdateHandPositions(e.ModeOfDataReceived);
     }

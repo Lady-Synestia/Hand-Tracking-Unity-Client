@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
+using HandTrackingModule.API;
 
 public class HandController : MonoBehaviour
 {
@@ -23,7 +23,7 @@ public class HandController : MonoBehaviour
             {
                 // getting point from api by index
                 var point = handTrackingAPI.GetPoint(index: i);
-                Debug.Log(point);
+                // Debug.Log(point);
                 handTransforms.SetChildPosition(i, point);
             }
         }
