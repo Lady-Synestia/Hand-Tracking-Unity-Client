@@ -65,6 +65,47 @@ public struct HandPoints
 
 }
 
+
+public enum Gesture
+{
+    FuckYou,
+    ThumbsUp,
+    Fist,
+    OpenPalm,
+    Ok,
+    Metal,
+    WebShooter,
+    ErmAckshually,
+    Victory,
+    Number3,
+    LmaoGottem
+}
+
+public enum Direction
+{
+    Up,
+    Down,
+    Left,
+    Right
+}
+
+public class HandData
+{
+    private Dictionary<string, Vector3> pointsDict;
+    public Gesture gesture { get; }
+    public Direction direction { get; }
+
+    public Vector3 GetPoint(string point)
+    {
+        return pointsDict[point];
+    }
+
+   public void SetFromJson(string json)
+    {
+        // stuff here
+    }
+}
+
 public class HandController : MonoBehaviour
 {
     // has a length of 1 while testing only 1 hand
