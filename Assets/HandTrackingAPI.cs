@@ -34,17 +34,17 @@ namespace HandTrackingModule
             Right
         }
 
+        public enum HandType
+        {
+            Right,
+            Left
+        }
+
         public enum ReceiveMode
         {
             Points,
             Gesture,
             Direction
-        }
-
-        public enum HandType
-        {
-            Right,
-            Left
         }
 
         public class HandTrackingAPI : MonoBehaviour
