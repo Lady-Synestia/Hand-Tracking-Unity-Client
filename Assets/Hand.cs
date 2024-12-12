@@ -5,6 +5,11 @@ public class Hand : MonoBehaviour
 {
     private Transform[] childTransforms;
 
+    // Multiplier for raw position data
+    // stops points from being so clustered
+    // TODO: fix offset caused by multiplier
+    const int distanceMultiplier = -5;
+
     private void Start()
     {
         // number of children is expected to be 21
@@ -14,12 +19,10 @@ public class Hand : MonoBehaviour
         {
             childTransforms[i] = this.transform.GetChild(i);
         }
-
-
     }
 
     public void SetChildPosition(int childIndex, Vector3 position)
     {
-        childTransforms[childIndex].position = position;
+        childTransforms[childIndex].position = position * distanceMultiplier;
     }
 }

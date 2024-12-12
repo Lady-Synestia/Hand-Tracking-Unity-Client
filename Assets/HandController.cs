@@ -31,9 +31,12 @@ public struct HandPoints
     {
         // Debug.Log(json);
         this = JsonUtility.FromJson<HandPoints>(json);
-
     }
 
+    /// <summary>
+    /// C# Iterators 
+    /// https://learn.microsoft.com/en-us/dotnet/csharp/iterators
+    /// </summary>
     // allows iteration over the struct
     public IEnumerable<Vector3> GetPoints()
     {
@@ -62,29 +65,35 @@ public struct HandPoints
 
 }
 
-public class HandInterface : MonoBehaviour
+public class HandController : MonoBehaviour
 {
-    HandPoints HandPoints;
-
-    // Multiplier for raw position data
-    // stops points from being so clustered
-    // TODO: fix offset caused by multiplier
-    const int distanceMultiplier = -10;
+    // has a length of 1 while testing only 1 hand
+    HandPoints[] HandPointsArray = new HandPoints[1];
 
     [Header("Hand Transforms")]
     public Hand handTransforms;
 
-    public void UpdateHandPositions(string json)
+    public void UpdateHandPositions(string[] jsonStrings)
     {
-        HandPoints.PointsFromJson(json);
-
-        // iterating through the received positions to update the in-game transforms
-        int index = 0;
-        foreach (Vector3 point in HandPoints.GetPoints())
         {
-            // Debug.Log(point);
-            handTransforms.SetChildPosition(index, point * distanceMultiplier);
-            index++;
+            // iterating through array of json strings to update the stored positions
+            int index = 0;
+            foreach (string json in jsonStrings)
+            {
+                HandPointsArray[index].PointsFromJson(json);
+                index++;
+            }
+        }
+
+        {
+            // iterating through the stored positions to update the in-game transforms
+            int index = 0;
+            foreach (Vector3 point in HandPointsArray[0].GetPoints())
+            {
+                // Debug.Log(point);
+                handTransforms.SetChildPosition(index, point);
+                index++;
+            }
         }
     }
 }
