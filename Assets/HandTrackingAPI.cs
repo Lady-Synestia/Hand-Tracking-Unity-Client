@@ -380,6 +380,18 @@ namespace HandTrackingModule
 
                 sendBuffer = Encoding.UTF8.GetBytes(message);
                 await ws.SendAsync(sendBuffer, WebSocketMessageType.Text, true, default);
+
+                // receiving handshake confirmation
+                var task = await ws.ReceiveAsync(receiveBuffer, default);
+                if (task.EndOfMessage)
+                {
+                    string response = Encoding.UTF8.GetString(receiveBuffer);
+                    Debug.Log($"Handshake successful: {response}");
+                }
+                else
+                {
+                    throw new Exception("Handshake failed");
+                }
             }
             catch (Exception e)
             { 
