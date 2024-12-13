@@ -11,12 +11,12 @@ public class EventManager : MonoBehaviour
     void Start()
     {
         // "subscribing" the function WebsocketDataReceived() to the event DataReceivedEvent
-        handController.handTrackingAPI.DataReceivedEvent += WebsocketDataReceived;
+        handController.HandTrackingAPI.DataReceivedEvent += WebsocketDataReceived;
     }
 
     void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
     {
-        if (e.success)
+        if (e.Success)
         {
             handController.UpdateHandPositions();
         }

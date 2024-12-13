@@ -151,7 +151,7 @@ namespace HandTrackingModule.Websocket
                     {
                         semaphore.Release();
                     }
-                    // delegate call for HandTrackingAPI
+                    // delegate call for HandTrackingSystem
                     DataReceivedDel(JsonString);
                 }
                 else

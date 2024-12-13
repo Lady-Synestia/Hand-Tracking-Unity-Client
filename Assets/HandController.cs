@@ -7,13 +7,13 @@ public class HandController : MonoBehaviour
     public Hand RightHand;
     public Hand LeftHand;
 
-    [Header("HandTrackingAPI")]
-    public HandTrackingAPI handTrackingAPI;
+    [Header("Hand Tracking API")]
+    public HandTrackingSystem HandTrackingAPI;
 
     private void Start()
     {
-        handTrackingAPI.SetReceiveMode(ReceiveMode.Points);
-        handTrackingAPI.Activate();
+        HandTrackingAPI.SetReceiveMode(ReceiveMode.Points);
+        HandTrackingAPI.Activate();
     }
 
     public void UpdateHandPositions()
@@ -22,8 +22,8 @@ public class HandController : MonoBehaviour
         for (int i = 0; i < 21; i++) 
         {
             // getting points from api by index
-            var rpoint = handTrackingAPI.GetPoint(i, HandType.Right);
-            var lpoint = handTrackingAPI.GetPoint(i, HandType.Left);
+            var rpoint = HandTrackingAPI.GetPoint(i, HandType.Right);
+            var lpoint = HandTrackingAPI.GetPoint(i, HandType.Left);
             // Debug.Log(point);
             RightHand.SetChildPosition(i, rpoint);
             LeftHand.SetChildPosition(i, lpoint);
