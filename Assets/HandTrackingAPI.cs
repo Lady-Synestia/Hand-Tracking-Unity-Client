@@ -2,191 +2,183 @@ namespace HandTrackingModule
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.WebSockets;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using UnityEngine;
-    using API;
+    using Websocket;
 
-    // HandTrackingModule.API only exposes necessary features
-    namespace API
+    public enum Gesture
     {
-        public enum Gesture
+        FuckYou,
+        ThumbsUp,
+        Fist,
+        OpenPalm,
+        Ok,
+        Metal,
+        WebShooter,
+        ErmAckshually,
+        Victory,
+        Number3,
+        LmaoGottem
+    }
+
+    public enum Direction
+    {
+        Up,
+        Down,
+        Left,
+        Right
+    }
+
+    public enum HandType
+    {
+        Right,
+        Left
+    }
+
+    public enum ReceiveMode
+    {
+        Points,
+        Gesture,
+        Direction
+    }
+
+    public class HandTrackingAPI : MonoBehaviour
+    {
+        /// <summary>
+        /// Event Delegates 
+        /// EventHandler Delegate > https://learn.microsoft.com/en-us/dotnet/api/system.eventhandler?view=net-9.0
+        /// Handling and Raising Events > https://learn.microsoft.com/en-us/dotnet/standard/events/
+        /// </summary>
+        // Event is used to notify eventManager when hand data is received
+        public event EventHandler<DataReceivedEventArgs> DataReceivedEvent;
+
+        private WebsocketListener WSListener = new();
+        private Dictionary<ReceiveMode, bool> ReceiveModes = new() {
+            { ReceiveMode.Direction, false },
+            { ReceiveMode.Points, false },
+            { ReceiveMode.Gesture, false }
+        };
+
+        // data for each hand
+        private HandData RHandData = new(HandType.Right);
+        private HandData LHandData = new(HandType.Left);
+
+        private bool ConnectionSuccessfull = false;
+
+        public async void Activate()
         {
-            FuckYou,
-            ThumbsUp,
-            Fist,
-            OpenPalm,
-            Ok,
-            Metal,
-            WebShooter,
-            ErmAckshually,
-            Victory,
-            Number3,
-            LmaoGottem
+            try
+            {
+                if (!ReceiveModes.ContainsValue(true))
+                {
+                    throw new Exception("No receive mode set, websocket cannot activate");
+                }
+                {
+                    WSRC status = await WSListener.OpenSocket();
+                    Debug.Log($"Websocket connection: {status}");
+                }
+                {
+                    WSRC status = await WSListener.SendModeRequest(GenerateTypeRequestCode());
+                    Debug.Log($"Websocket mode request sent: {status}");
+                    if (status == WSRC.Success)
+                    {
+                        ConnectionSuccessfull = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         }
 
-        public enum Direction
+        private void Start()
         {
-            Up,
-            Down,
-            Left,
-            Right
+            // DataReceived() will be called when WSListener receives data
+            WSListener.DataReceivedDel += DataReceived;
         }
 
-        public enum HandType
+        private void Update()
         {
-            Right,
-            Left
+            // string testJson = "{\"point0\": {\"x\": 0.36451587080955505, \"y\": 0.7492399215698242, \"z\": -1.5179728585223984e-09}, \"point1\": {\"x\": 0.34811195731163025, \"y\": 0.7084940671920776, \"z\": -0.05889080837368965}, \"point2\": {\"x\": 0.3175491392612457, \"y\": 0.6842957139015198, \"z\": -0.08604178577661514}, \"point3\": {\"x\": 0.28366610407829285, \"y\": 0.6672555804252625, \"z\": -0.09910319745540619}, \"point4\": {\"x\": 0.24972884356975555, \"y\": 0.6543729305267334, \"z\": -0.10958848148584366}, \"point5\": {\"x\": 0.26708173751831055, \"y\": 0.7825995683670044, \"z\": -0.07823742181062698}, \"point6\": {\"x\": 0.20796909928321838, \"y\": 0.7588865160942078, \"z\": -0.09051723033189774}, \"point7\": {\"x\": 0.18948495388031006, \"y\": 0.7131353616714478, \"z\": -0.09657265245914459}, \"point8\": {\"x\": 0.18492534756660461, \"y\": 0.6728100180625916, \"z\": -0.09973837435245514}, \"point9\": {\"x\": 0.2606772780418396, \"y\": 0.8008275628089905, \"z\": -0.0475996658205986}, \"point10\": {\"x\": 0.20537029206752777, \"y\": 0.7662889361381531, \"z\": -0.05684434249997139}, \"point11\": {\"x\": 0.18718063831329346, \"y\": 0.7139981985092163, \"z\": -0.06536299735307693}, \"point12\": {\"x\": 0.18383654952049255, \"y\": 0.6727067828178406, \"z\": -0.07237333804368973}, \"point13\": {\"x\": 0.25679683685302734, \"y\": 0.8021751046180725, \"z\": -0.017644982784986496}, \"point14\": {\"x\": 0.20753738284111023, \"y\": 0.772013247013092, \"z\": -0.021955737844109535}, \"point15\": {\"x\": 0.19017675518989563, \"y\": 0.7260228991508484, \"z\": -0.03151095658540726}, \"point16\": {\"x\": 0.1863010674715042, \"y\": 0.686863899230957, \"z\": -0.03952827677130699}, \"point17\": {\"x\": 0.2558435797691345, \"y\": 0.7944516539573669, \"z\": 0.00818195752799511}, \"point18\": {\"x\": 0.2147524505853653, \"y\": 0.7713050246238708, \"z\": 0.003776286030188203}, \"point19\": {\"x\": 0.19767005741596222, \"y\": 0.7385501265525818, \"z\": -0.003902278607711196}, \"point20\": {\"x\": 0.1897059679031372, \"y\": 0.7055431008338928, \"z\": -0.009910108521580696}}";
+            // DataReceived(testJson);
+
+            // prevents ReceiveData call before connection has been established
+            if (ConnectionSuccessfull)
+            {
+                // ReceiveData() uses semaphores for thread control, so does not need to be awaited
+                WSListener.ReceiveData();
+            }
         }
 
-        public enum ReceiveMode
+        private async void OnApplicationQuit()
         {
-            Points,
-            Gesture,
-            Direction
+            WSRC status = await WSListener.CloseSocket();
+            Debug.Log($"Closed websocket connection: {status}");
         }
 
-        public class HandTrackingAPI : MonoBehaviour
+        private void DataReceived(string json)
         {
-            /// <summary>
-            /// Event Delegates 
-            /// EventHandler Delegate > https://learn.microsoft.com/en-us/dotnet/api/system.eventhandler?view=net-9.0
-            /// Handling and Raising Events > https://learn.microsoft.com/en-us/dotnet/standard/events/
-            /// </summary>
-            // Event is used to notify eventManager when hand data is received
-            public event EventHandler<DataReceivedEventArgs> DataReceivedEvent;
+            // splitting received string into array of substrings
+            string[] jsonStrings = json.Trim('[', ']').Split("], [");
 
-            private WebsocketListener WSListener = new();
-            private Dictionary<ReceiveMode, bool> ReceiveModes = new() {
-                { ReceiveMode.Direction, false }, 
-                { ReceiveMode.Points, false },
-                { ReceiveMode.Gesture, false }
+            // currently prefers right hand to left if there is only one set of hand points
+            switch (jsonStrings.Length)
+            {
+                case 2:
+                    LHandData.SetFromJson(jsonStrings[1]);
+                    goto case 1;
+                case 1:
+                    RHandData.SetFromJson(jsonStrings[0]);
+                    break;
+            }
+
+            // While testing, just passing the single string into the array
+            // Once complete the strings will have to be extracted from the received data
+            DataReceivedEventArgs args = new()
+            {
+                success = true
             };
-
-            // data for each hand
-            private HandData RHandData = new(HandType.Right);
-            private HandData LHandData = new(HandType.Left);
-
-            private bool ConnectionSuccessfull = false;
-
-            public async void Activate()
-            {
-                try
-                {
-                    if (!ReceiveModes.ContainsValue(true))
-                    {
-                        throw new Exception("No receive mode set, websocket cannot activate");
-                    }
-                    {
-                        WSRC status = await WSListener.OpenSocket();
-                        Debug.Log($"Websocket connection: {status}");
-                    }
-                    {
-                        WSRC status = await WSListener.SendModeRequest(GenerateTypeRequestCode());
-                        Debug.Log($"Websocket mode request sent: {status}");
-                        if (status == WSRC.Success)
-                        {
-                            ConnectionSuccessfull = true;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
-            }
-
-            private void Start()
-            {
-                // DataReceived() will be called when WSListener receives data
-                WSListener.DataReceivedDel += DataReceived;
-            }
-
-            private void Update()
-            {
-                // string testJson = "{\"point0\": {\"x\": 0.36451587080955505, \"y\": 0.7492399215698242, \"z\": -1.5179728585223984e-09}, \"point1\": {\"x\": 0.34811195731163025, \"y\": 0.7084940671920776, \"z\": -0.05889080837368965}, \"point2\": {\"x\": 0.3175491392612457, \"y\": 0.6842957139015198, \"z\": -0.08604178577661514}, \"point3\": {\"x\": 0.28366610407829285, \"y\": 0.6672555804252625, \"z\": -0.09910319745540619}, \"point4\": {\"x\": 0.24972884356975555, \"y\": 0.6543729305267334, \"z\": -0.10958848148584366}, \"point5\": {\"x\": 0.26708173751831055, \"y\": 0.7825995683670044, \"z\": -0.07823742181062698}, \"point6\": {\"x\": 0.20796909928321838, \"y\": 0.7588865160942078, \"z\": -0.09051723033189774}, \"point7\": {\"x\": 0.18948495388031006, \"y\": 0.7131353616714478, \"z\": -0.09657265245914459}, \"point8\": {\"x\": 0.18492534756660461, \"y\": 0.6728100180625916, \"z\": -0.09973837435245514}, \"point9\": {\"x\": 0.2606772780418396, \"y\": 0.8008275628089905, \"z\": -0.0475996658205986}, \"point10\": {\"x\": 0.20537029206752777, \"y\": 0.7662889361381531, \"z\": -0.05684434249997139}, \"point11\": {\"x\": 0.18718063831329346, \"y\": 0.7139981985092163, \"z\": -0.06536299735307693}, \"point12\": {\"x\": 0.18383654952049255, \"y\": 0.6727067828178406, \"z\": -0.07237333804368973}, \"point13\": {\"x\": 0.25679683685302734, \"y\": 0.8021751046180725, \"z\": -0.017644982784986496}, \"point14\": {\"x\": 0.20753738284111023, \"y\": 0.772013247013092, \"z\": -0.021955737844109535}, \"point15\": {\"x\": 0.19017675518989563, \"y\": 0.7260228991508484, \"z\": -0.03151095658540726}, \"point16\": {\"x\": 0.1863010674715042, \"y\": 0.686863899230957, \"z\": -0.03952827677130699}, \"point17\": {\"x\": 0.2558435797691345, \"y\": 0.7944516539573669, \"z\": 0.00818195752799511}, \"point18\": {\"x\": 0.2147524505853653, \"y\": 0.7713050246238708, \"z\": 0.003776286030188203}, \"point19\": {\"x\": 0.19767005741596222, \"y\": 0.7385501265525818, \"z\": -0.003902278607711196}, \"point20\": {\"x\": 0.1897059679031372, \"y\": 0.7055431008338928, \"z\": -0.009910108521580696}}";
-                // DataReceived(testJson);
-
-                // prevents ReceiveData call before connection has been established
-                if (ConnectionSuccessfull)
-                {
-                    // ReceiveData() uses semaphores for thread control, so does not need to be awaited
-                    WSListener.ReceiveData();
-                }
-            }
-
-            private async void OnApplicationQuit()
-            {
-                WSRC status = await WSListener.CloseSocket();
-                Debug.Log($"Closed websocket connection: {status}");
-            }
-
-            private void DataReceived(string json)
-            {
-                // splitting received string into array of substrings
-                string[] jsonStrings = json.Trim('[', ']').Split("], [");
-                
-                // currently prefers right hand to left if there is only one set of hand points
-                switch (jsonStrings.Length)
-                {
-                    case 2:
-                        LHandData.SetFromJson(jsonStrings[1]);
-                        goto case 1;
-                    case 1:
-                        RHandData.SetFromJson(jsonStrings[0]);
-                        break;
-                }
-
-                // While testing, just passing the single string into the array
-                // Once complete the strings will have to be extracted from the received data
-                DataReceivedEventArgs args = new()
-                {
-                    ModeOfDataReceived = ReceiveMode.Points,
-                };
-                DataReceivedEvent?.Invoke(this, args);
-            }
-
-            private string GenerateTypeRequestCode()
-            {
-                char[] code = new char[3];
-                int i = 0;
-                foreach (bool value in ReceiveModes.Values)
-                {
-                    code[i] = value ? '1' : '0';
-                    i++;
-                }
-                // the code is a compact representation of what modes are active
-                // e.g. 010 -> only points are active | 101 -> direction and gestures are active
-                return new string(code);
-            }
-
-            // method overiding so SetReceiveMode can be called with 1-3 modes in any order
-            public void SetReceiveMode(ReceiveMode a) { ReceiveModes[a] = true;}
-            public void SetReceiveMode(ReceiveMode a, ReceiveMode b) { ReceiveModes[a] = true; ReceiveModes[b] = true; }
-            public void SetReceiveMode(ReceiveMode a, ReceiveMode b, ReceiveMode c) { ReceiveModes[a] = true; ReceiveModes[b]= true; ReceiveModes[c] = true; }
-
-            public Vector3 GetPoint(string point, HandType hand = HandType.Right)
-            {
-                switch (hand)
-                {
-                    case HandType.Right:
-                        return RHandData.GetPoint(point);
-                    case HandType.Left:
-                        return LHandData.GetPoint(point);
-                    default:
-                        return new Vector3();
-                }
-            }
-            // method overriding so GetPoint() can be called with an index instead of a string
-            public Vector3 GetPoint(int index, HandType hand = HandType.Right) { return GetPoint($"point{index}", hand); }
+            DataReceivedEvent?.Invoke(this, args);
         }
 
-        public class DataReceivedEventArgs : EventArgs
+        private string GenerateTypeRequestCode()
         {
-            public ReceiveMode ModeOfDataReceived { get; set; }
+            char[] code = new char[3];
+            int i = 0;
+            foreach (bool value in ReceiveModes.Values)
+            {
+                code[i] = value ? '1' : '0';
+                i++;
+            }
+            // the code is a compact representation of what modes are active
+            // e.g. 010 -> only points are active | 101 -> direction and gestures are active
+            return new string(code);
         }
+
+        // method overiding so SetReceiveMode can be called with 1-3 modes in any order
+        public void SetReceiveMode(ReceiveMode a) { ReceiveModes[a] = true; }
+        public void SetReceiveMode(ReceiveMode a, ReceiveMode b) { ReceiveModes[a] = true; ReceiveModes[b] = true; }
+        public void SetReceiveMode(ReceiveMode a, ReceiveMode b, ReceiveMode c) { ReceiveModes[a] = true; ReceiveModes[b] = true; ReceiveModes[c] = true; }
+
+        public Vector3 GetPoint(string point, HandType hand = HandType.Right)
+        {
+            switch (hand)
+            {
+                case HandType.Right:
+                    return RHandData.GetPoint(point);
+                case HandType.Left:
+                    return LHandData.GetPoint(point);
+                default:
+                    return new Vector3();
+            }
+        }
+        // method overriding so GetPoint() can be called with an index instead of a string
+        public Vector3 GetPoint(int index, HandType hand = HandType.Right) { return GetPoint($"point{index}", hand); }
+    }
+
+    public class DataReceivedEventArgs : EventArgs
+    {
+        public bool success {  get; set; }
     }
 
     [Serializable]
@@ -252,28 +244,6 @@ namespace HandTrackingModule
 
     }
 
-    // defining delegate to be called when data is received 
-    public delegate void Del(string json);
-
-    // defining custom exception for websocket listener
-    public class WebsocketNotActiveException : Exception
-    {
-        public override string Message { get; }
-        public WebsocketNotActiveException() { Message = "Websocket not active"; }
-
-    }
-    
-    /// <summary>
-    /// Websocket Return Codes
-    /// </summary>
-    public enum WSRC
-    {
-        Success,
-        Failure,
-        SemaphoreFull,
-        NotActive
-    }
-
     public class HandData
     {
         // temp structure while refactoring
@@ -289,9 +259,9 @@ namespace HandTrackingModule
         public Vector3 GetPoint(string point)
         {
             // only returns value if it is contained by the dictionary
-            if (pointsDict.ContainsKey(point)) 
-            { 
-                return pointsDict[point]; 
+            if (pointsDict.ContainsKey(point))
+            {
+                return pointsDict[point];
             }
             return new Vector3();
         }
@@ -311,6 +281,39 @@ namespace HandTrackingModule
                 n++;
             }
         }
+    }
+
+
+}
+// hides websocket funcitonality from main module namespace
+namespace HandTrackingModule.Websocket
+{
+    using System;
+    using UnityEngine;
+    using System.Net.WebSockets;
+    using System.Text;
+    using System.Threading;
+    using System.Threading.Tasks;
+    // defining delegate to be called when data is received 
+    public delegate void Del(string json);
+
+    // defining custom exception for websocket listener
+    public class WebsocketNotActiveException : Exception
+    {
+        public override string Message { get; }
+        public WebsocketNotActiveException() { Message = "Websocket not active"; }
+
+    }
+
+    /// <summary>
+    /// Websocket Return Codes
+    /// </summary>
+    public enum WSRC
+    {
+        Success,
+        Failure,
+        SemaphoreFull,
+        NotActive
     }
 
     public class WebsocketListener
@@ -350,8 +353,8 @@ namespace HandTrackingModule
                     return WSRC.SemaphoreFull;
                 default:
                     Debug.LogError(e);
-                    return WSRC.Failure; 
-            } 
+                    return WSRC.Failure;
+            }
         }
 
         /// <summary>
@@ -360,16 +363,16 @@ namespace HandTrackingModule
         /// <returns>request status code</returns>
         public async Task<WSRC> OpenSocket()
         {
-            
+
             try
-            { 
+            {
                 if (!isActive)
                 {
                     isActive = true;
                     await ws.ConnectAsync(uri, default);
                 }
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 isActive = false;
                 return HandleException(e);
@@ -404,7 +407,7 @@ namespace HandTrackingModule
                 }
             }
             catch (Exception e)
-            { 
+            {
                 return HandleException(e);
             }
             return WSRC.Success;

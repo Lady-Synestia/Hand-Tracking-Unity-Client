@@ -1,5 +1,5 @@
 using UnityEngine;
-using HandTrackingModule.API;
+using HandTrackingModule;
 
 public class EventManager : MonoBehaviour
 {
@@ -16,6 +16,9 @@ public class EventManager : MonoBehaviour
 
     void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
     {
-        handController.UpdateHandPositions(e.ModeOfDataReceived);
+        if (e.success)
+        {
+            handController.UpdateHandPositions();
+        }
     }
 }

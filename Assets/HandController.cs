@@ -1,5 +1,5 @@
 using UnityEngine;
-using HandTrackingModule.API;
+using HandTrackingModule;
 
 public class HandController : MonoBehaviour
 {
@@ -16,20 +16,17 @@ public class HandController : MonoBehaviour
         handTrackingAPI.Activate();
     }
 
-    public void UpdateHandPositions(ReceiveMode mode)
+    public void UpdateHandPositions()
     {
-        if (mode == ReceiveMode.Points)
+        // iterating through the stored positions to update the in-game transforms
+        for (int i = 0; i < 21; i++) 
         {
-            // iterating through the stored positions to update the in-game transforms
-            for (int i = 0; i < 21; i++) 
-            {
-                // getting points from api by index
-                var rpoint = handTrackingAPI.GetPoint(i, HandType.Right);
-                var lpoint = handTrackingAPI.GetPoint(i, HandType.Left);
-                // Debug.Log(point);
-                RightHand.SetChildPosition(i, rpoint);
-                LeftHand.SetChildPosition(i, lpoint);
-            }
-        }
+            // getting points from api by index
+            var rpoint = handTrackingAPI.GetPoint(i, HandType.Right);
+            var lpoint = handTrackingAPI.GetPoint(i, HandType.Left);
+            // Debug.Log(point);
+            RightHand.SetChildPosition(i, rpoint);
+            LeftHand.SetChildPosition(i, lpoint);
+        } 
     }
 }
