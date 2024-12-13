@@ -1,4 +1,3 @@
-
 // hides websocket funcitonality from main module namespace
 namespace HandTrackingModule.Websocket
 {
@@ -13,7 +12,7 @@ namespace HandTrackingModule.Websocket
     public delegate void Del(string json);
 
     // defining custom exception for websocket listener
-    public class WebsocketNotActiveException : Exception
+    class WebsocketNotActiveException : Exception
     {
         public override string Message { get; }
         public WebsocketNotActiveException() { Message = "Websocket not active"; }
@@ -31,7 +30,7 @@ namespace HandTrackingModule.Websocket
         NotActive
     }
 
-    public class WebsocketListener
+    class WebsocketListener
     {
         public Del DataReceivedDel;
         public bool isActive;

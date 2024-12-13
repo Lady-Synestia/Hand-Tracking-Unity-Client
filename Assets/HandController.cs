@@ -8,11 +8,16 @@ public class HandController : MonoBehaviour
     public Hand LeftHand;
 
     [Header("Hand Tracking API")]
-    public HandTrackingSystem HandTrackingAPI;
+    public IHandTracking HandTrackingAPI;
+
+    private void Awake()
+    {
+        HandTrackingAPI = GetComponent<HandTrackingSystem>();
+    }
 
     private void Start()
     {
-        HandTrackingAPI.SetReceiveMode(ReceiveType.Landmarks);
+        HandTrackingAPI.SetReceiveTypes(ReceiveType.Landmarks);
         HandTrackingAPI.Activate();
     }
 

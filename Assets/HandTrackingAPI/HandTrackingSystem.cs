@@ -2,9 +2,9 @@ namespace HandTrackingModule
 {
     using System;
     using System.Collections.Generic;
-    using Unity.VisualScripting;
     using UnityEngine;
-    using Websocket;
+    using HandTrackingModule.Websocket;
+ 
     public enum Gesture
     {
         FuckYou,
@@ -53,14 +53,28 @@ namespace HandTrackingModule
         public ReceiveTypeException(ReceiveType type) { Message = $"Not receiving data of type: {type}"; }
     }
 
-    public class HandTrackingSystem : MonoBehaviour
+    public interface IHandTracking
+    {
+        event EventHandler<DataReceivedEventArgs> DataReceivedEvent;
+        void Activate();
+        void SetReceiveTypes(ReceiveType a);
+        void SetReceiveTypes(ReceiveType a, ReceiveType b);
+        void SetReceiveTypes(ReceiveType a, ReceiveType c, ReceiveType d);
+        Vector3 GetLandmark(string name, HandType hand);
+        Vector3 GetLandmark(int i, HandType hand);
+        Gesture GetGesture(HandType hand);
+        Direction GetDirection(HandType hand);
+    }
+
+
+    class HandTrackingSystem : MonoBehaviour, IHandTracking
     {
         private WebsocketListener WSListener = new();
         private Dictionary<ReceiveType, bool> ReceiveTypes = new() 
         {
-            { HandTrackingModule.ReceiveType.Direction, false },
-            { HandTrackingModule.ReceiveType.Landmarks, false },
-            { HandTrackingModule.ReceiveType.Gesture, false }
+            { ReceiveType.Direction, false },
+            { ReceiveType.Landmarks, false },
+            { ReceiveType.Gesture, false }
         };
 
         // data for each hand
@@ -170,10 +184,10 @@ namespace HandTrackingModule
             }
         }
 
-        // method overloading so SetReceiveMode can be called with 1-3 modes in any order
-        public void SetReceiveMode(ReceiveType a) { ReceiveTypes[a] = true; }
-        public void SetReceiveMode(ReceiveType a, ReceiveType b) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; }
-        public void SetReceiveMode(ReceiveType a, ReceiveType b, ReceiveType c) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; ReceiveTypes[c] = true; }
+        // method overloading so SetReceiveTypes can be called with 1-3 modes in any order
+        public void SetReceiveTypes(ReceiveType a) { ReceiveTypes[a] = true; }
+        public void SetReceiveTypes(ReceiveType a, ReceiveType b) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; }
+        public void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; ReceiveTypes[c] = true; }
 
 
         private bool ReceiveTypeValidation(ReceiveType type)
@@ -203,8 +217,12 @@ namespace HandTrackingModule
         }
         // method overloading so GetLandmark() can be called with an index instead of a string
         public Vector3 GetLandmark(int index, HandType hand = HandType.Right)
-        { 
-            return GetLandmark($"point{index}", hand); 
+        {
+            if (ReceiveTypeValidation(ReceiveType.Landmarks))
+            {
+                return HandsData[hand].GetPoint($"point{index}");
+            }
+            return default;
         }
 
         public Gesture GetGesture(HandType hand = HandType.Right)
@@ -227,7 +245,7 @@ namespace HandTrackingModule
     }
 
     [Serializable]
-    public struct HandPoints
+    struct HandPoints
     {
         public Vector3 point0;
         public Vector3 point1;
@@ -289,7 +307,7 @@ namespace HandTrackingModule
 
     }
 
-    public class HandData
+    class HandData
     {
         // temp structure while refactoring
         public HandPoints handPoints;
