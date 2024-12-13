@@ -2,6 +2,7 @@ namespace HandTrackingModule
 {
     using System;
     using System.Collections.Generic;
+    using Unity.VisualScripting;
     using UnityEngine;
     using Websocket;
     public enum Gesture
@@ -33,9 +34,9 @@ namespace HandTrackingModule
         Left
     }
 
-    public enum ReceiveMode
+    public enum ReceiveType
     {
-        Points,
+        Landmarks,
         Gesture,
         Direction
     }
@@ -45,18 +46,29 @@ namespace HandTrackingModule
         public bool Success { get; set; }
     }
 
+    // custom exception for api data requests
+    public class ReceiveTypeException : Exception
+    {
+        public override string Message { get; }
+        public ReceiveTypeException(ReceiveType type) { Message = $"Not receiving data of type: {type}"; }
+    }
+
     public class HandTrackingSystem : MonoBehaviour
     {
         private WebsocketListener WSListener = new();
-        private Dictionary<ReceiveMode, bool> ReceiveModes = new() {
-            { ReceiveMode.Direction, false },
-            { ReceiveMode.Points, false },
-            { ReceiveMode.Gesture, false }
+        private Dictionary<ReceiveType, bool> ReceiveTypes = new() 
+        {
+            { HandTrackingModule.ReceiveType.Direction, false },
+            { HandTrackingModule.ReceiveType.Landmarks, false },
+            { HandTrackingModule.ReceiveType.Gesture, false }
         };
 
         // data for each hand
-        private HandData RHandData = new(HandType.Right);
-        private HandData LHandData = new(HandType.Left);
+        private Dictionary<HandType, HandData> HandsData = new()
+        {
+            { HandType.Right, new(HandType.Right) },
+            { HandType.Left, new(HandType.Left)}
+        };
 
         private bool ConnectionSuccessfull = false;
 
@@ -104,10 +116,10 @@ namespace HandTrackingModule
             switch (jsonStrings.Length)
             {
                 case 2:
-                    LHandData.SetFromJson(jsonStrings[1]);
+                    HandsData[HandType.Left].SetFromJson(jsonStrings[1]);
                     goto case 1;
                 case 1:
-                    RHandData.SetFromJson(jsonStrings[0]);
+                    HandsData[HandType.Right].SetFromJson(jsonStrings[0]);
                     break;
             }
 
@@ -122,7 +134,7 @@ namespace HandTrackingModule
         {
             char[] code = new char[3];
             int i = 0;
-            foreach (bool value in ReceiveModes.Values)
+            foreach (bool value in ReceiveTypes.Values)
             {
                 code[i] = value ? '1' : '0';
                 i++;
@@ -135,7 +147,7 @@ namespace HandTrackingModule
         {
             try
             {
-                if (!ReceiveModes.ContainsValue(true))
+                if (!ReceiveTypes.ContainsValue(true))
                 {
                     throw new Exception("No receive mode set, websocket cannot activate");
                 }
@@ -158,25 +170,60 @@ namespace HandTrackingModule
             }
         }
 
-        // method overriding so SetReceiveMode can be called with 1-3 modes in any order
-        public void SetReceiveMode(ReceiveMode a) { ReceiveModes[a] = true; }
-        public void SetReceiveMode(ReceiveMode a, ReceiveMode b) { ReceiveModes[a] = true; ReceiveModes[b] = true; }
-        public void SetReceiveMode(ReceiveMode a, ReceiveMode b, ReceiveMode c) { ReceiveModes[a] = true; ReceiveModes[b] = true; ReceiveModes[c] = true; }
+        // method overloading so SetReceiveMode can be called with 1-3 modes in any order
+        public void SetReceiveMode(ReceiveType a) { ReceiveTypes[a] = true; }
+        public void SetReceiveMode(ReceiveType a, ReceiveType b) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; }
+        public void SetReceiveMode(ReceiveType a, ReceiveType b, ReceiveType c) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; ReceiveTypes[c] = true; }
 
-        public Vector3 GetPoint(string point, HandType hand = HandType.Right)
+
+        private bool ReceiveTypeValidation(ReceiveType type)
         {
-            switch (hand)
+            try
             {
-                case HandType.Right:
-                    return RHandData.GetPoint(point);
-                case HandType.Left:
-                    return LHandData.GetPoint(point);
-                default:
-                    return new Vector3();
+                if (!ReceiveTypes[type])
+                {
+                    throw new ReceiveTypeException(type);
+                }
+                return true;
+            }
+            catch (ReceiveTypeException e)
+            {
+                Debug.LogError(e);
+                return false;
             }
         }
-        // method overriding so GetPoint() can be called with an index instead of a string
-        public Vector3 GetPoint(int index, HandType hand = HandType.Right) { return GetPoint($"point{index}", hand); }
+
+        public Vector3 GetLandmark(string name, HandType hand = HandType.Right)
+        {
+            if (ReceiveTypeValidation(ReceiveType.Landmarks))
+            {
+                return HandsData[hand].GetPoint(name);
+            }
+            return default;
+        }
+        // method overloading so GetLandmark() can be called with an index instead of a string
+        public Vector3 GetLandmark(int index, HandType hand = HandType.Right)
+        { 
+            return GetLandmark($"point{index}", hand); 
+        }
+
+        public Gesture GetGesture(HandType hand = HandType.Right)
+        {
+            if (ReceiveTypeValidation(ReceiveType.Gesture))
+            {
+                return HandsData[hand].Gesture;
+            }
+            return default;
+        }
+
+        public Direction GetDirection(HandType hand = HandType.Right)
+        {
+            if (ReceiveTypeValidation(ReceiveType.Direction))
+            {
+                return HandsData[hand].Direction;
+            }
+            return default;
+        }
     }
 
     [Serializable]
@@ -247,21 +294,29 @@ namespace HandTrackingModule
         // temp structure while refactoring
         public HandPoints handPoints;
 
-        private Dictionary<string, Vector3> pointsDict = new();
+        private Dictionary<string, Vector3> Landmarks = new();
         public HandType Hand { get; }
         public Gesture Gesture { get; private set; }
-        public Direction Direction { get; private set; }
+        public Direction Direction {  get; private set; }
 
         public HandData(HandType hand) { Hand = hand; }
 
-        public Vector3 GetPoint(string point)
+        public Vector3 GetPoint(string key)
         {
             // only returns value if it is contained by the dictionary
-            if (pointsDict.ContainsKey(point))
+            try
             {
-                return pointsDict[point];
+                if (!Landmarks.ContainsKey(key))
+                {
+                    throw new Exception($"{key} is not a valid landmark");
+                }
+                return Landmarks[key];
             }
-            return new Vector3();
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return default;
+            }
         }
 
         public void SetFromJson(string json)
@@ -272,9 +327,9 @@ namespace HandTrackingModule
             {
                 string key = $"point{n}";
                 // adds the key-value pair if key isnt already present, otherwise sets the value
-                if (!pointsDict.TryAdd(key, point))
+                if (!Landmarks.TryAdd(key, point))
                 {
-                    pointsDict[key] = point;
+                    Landmarks[key] = point;
                 }
                 n++;
             }

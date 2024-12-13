@@ -67,7 +67,7 @@ namespace HandTrackingModule.Websocket
                 case SemaphoreFullException:
                     return WSRC.SemaphoreFull;
                 default:
-                    Debug.LogError(e);
+                    Debug.LogException(e);
                     return WSRC.Failure;
             }
         }

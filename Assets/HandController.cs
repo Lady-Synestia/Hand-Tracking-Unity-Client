@@ -12,7 +12,7 @@ public class HandController : MonoBehaviour
 
     private void Start()
     {
-        HandTrackingAPI.SetReceiveMode(ReceiveMode.Points);
+        HandTrackingAPI.SetReceiveMode(ReceiveType.Landmarks);
         HandTrackingAPI.Activate();
     }
 
@@ -22,8 +22,9 @@ public class HandController : MonoBehaviour
         for (int i = 0; i < 21; i++) 
         {
             // getting points from api by index
-            var rpoint = HandTrackingAPI.GetPoint(i, HandType.Right);
-            var lpoint = HandTrackingAPI.GetPoint(i, HandType.Left);
+            Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
+            Vector3 lpoint = HandTrackingAPI.GetLandmark(i, HandType.Left);
+
             // Debug.Log(point);
             RightHand.SetChildPosition(i, rpoint);
             LeftHand.SetChildPosition(i, lpoint);
