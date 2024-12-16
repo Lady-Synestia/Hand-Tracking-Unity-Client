@@ -77,7 +77,19 @@ Vector3 GetLandmark(string name, HandType hand | int index, HandType hand)
 ```
 
 Takes either a `string` for the name of the Landmark, or an `integer` denoting its index.<br>
-Also takes a `HandType` to request data for the left or right hand.
+Optionally takes a `HandType` to request Landmark data for the left or right hand (defaults to right hand).
+
+#### *GetGesture*
+```cs
+public Gesture GetGesture(HandType hand)
+```
+Optionally takes a `HandType` to request Gesture data for the left or right hand (defaults to right)
+
+#### *GetDirection*
+```cs
+public Direction GetDirection(HandType hand)
+```
+Optionally takes a `HandType` to request Direction data for the left or right hand (defaults to right)
 
 ---
 
@@ -106,9 +118,9 @@ public class DataReceivedEventArgs : Event Args
 }
 ```
 
-**Fields:**
-`Success` Whether or not the Json data was received and unpacked successfully.
-`RightDataReceived` Whether or not data for the right hand was received.
+**Fields:**<br>
+`Success` Whether or not the Json data was received and unpacked successfully.<br>
+`RightDataReceived` Whether or not data for the right hand was received.<br>
 `LeftDataReceived` Whether or not data for the left hand was received.
 
 ---
