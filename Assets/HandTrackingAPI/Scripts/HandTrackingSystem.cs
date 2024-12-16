@@ -1,10 +1,10 @@
 namespace HandTrackingModule
 {
     using System;
-    using System.Collections.Generic;
     using UnityEngine;
+    using System.Collections.Generic;
     using HandTrackingModule.Websocket;
- 
+
     public enum Gesture
     {
         FuckYou,
@@ -65,7 +65,6 @@ namespace HandTrackingModule
         Gesture GetGesture(HandType hand);
         Direction GetDirection(HandType hand);
     }
-
 
     class HandTrackingSystem : MonoBehaviour, IHandTracking
     {
@@ -316,7 +315,6 @@ namespace HandTrackingModule
         public HandType Hand { get; }
         public Gesture Gesture { get; private set; }
         public Direction Direction {  get; private set; }
-
         public HandData(HandType hand) { Hand = hand; }
 
         public Vector3 GetPoint(string key)
@@ -332,11 +330,10 @@ namespace HandTrackingModule
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogWarning(e);
                 return default;
             }
         }
-
         public void SetFromJson(string json)
         {
             handPoints.PointsFromJson(json);
@@ -353,4 +350,5 @@ namespace HandTrackingModule
             }
         }
     }
+
 }
