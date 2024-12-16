@@ -61,7 +61,7 @@ namespace HandTrackingModule
         void Activate();
         void SetReceiveTypes(ReceiveType a);
         void SetReceiveTypes(ReceiveType a, ReceiveType b);
-        void SetReceiveTypes(ReceiveType a, ReceiveType c, ReceiveType d);
+        void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c);
         Vector3 GetLandmark(string name, HandType hand);
         Vector3 GetLandmark(int i, HandType hand);
         Gesture GetGesture(HandType hand);
