@@ -7,17 +7,16 @@ namespace HandTrackingModule
 
     public enum Gesture
     {
-        FuckYou,
+        MiddleFinger,
         ThumbsUp,
         Fist,
         OpenPalm,
         Ok,
         Metal,
         WebShooter,
-        ErmAckshually,
-        Victory,
-        Number3,
-        LmaoGottem
+        Number1,
+        Number2,
+        Number3
     }
 
     public enum Direction
