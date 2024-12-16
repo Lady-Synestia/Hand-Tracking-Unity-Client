@@ -44,6 +44,8 @@ namespace HandTrackingModule
     public class DataReceivedEventArgs : EventArgs
     {
         public bool Success { get; set; }
+        public bool RightDataReceived { get; set; }
+        public bool LeftDataReceived { get; set; }
     }
 
     // custom exception for api data requests
@@ -122,24 +124,41 @@ namespace HandTrackingModule
 
         private void DataReceived(string json)
         {
-            // splitting received string into array of substrings
-            string[] jsonStrings = json.Trim('[', ']').Split("], [");
-
-            // currently prefers right hand to left if there is only one set of hand points
-            switch (jsonStrings.Length)
-            {
-                case 2:
-                    HandsData[HandType.Left].SetFromJson(jsonStrings[1]);
-                    goto case 1;
-                case 1:
-                    HandsData[HandType.Right].SetFromJson(jsonStrings[0]);
-                    break;
-            }
-
+            // initialising arguments and setting default values
             DataReceivedEventArgs args = new()
             {
-                Success = true
+                Success = false,
+                RightDataReceived = false,
+                LeftDataReceived = false
             };
+            try
+            {
+                // splitting received string into array of substrings
+                string[] jsonStrings = json.Trim('[', ']').Split("], [");
+
+                // debugging
+                if (jsonStrings.Length < 2) { Debug.LogWarning("Warning: Only one hand detected"); }
+
+                // currently prefers right hand to left if there is only one set of hand points
+                switch (jsonStrings.Length)
+                {
+                    case 2:
+                        HandsData[HandType.Left].SetFromJson(jsonStrings[1]);
+                        args.LeftDataReceived = true;
+                        goto case 1;
+                    case 1:
+                        HandsData[HandType.Right].SetFromJson(jsonStrings[0]);
+                        args.RightDataReceived = true;
+                        break;
+                }
+                args.Success = true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+
+            
             DataReceivedEvent?.Invoke(this, args);
         }
 
@@ -270,8 +289,15 @@ namespace HandTrackingModule
 
         public void PointsFromJson(string json)
         {
-            // Debug.Log(json);
-            this = JsonUtility.FromJson<HandPoints>(json);
+            try
+            {
+                // Debug.Log(json);
+                this = JsonUtility.FromJson<HandPoints>(json);
+            }
+            catch (NullReferenceException e)
+            {
+                Debug.LogWarning("Warning: Json not received from websocket\n" + e);
+            }
         }
 
         /// <summary>
@@ -330,7 +356,7 @@ namespace HandTrackingModule
             }
             catch (Exception e)
             {
-                Debug.LogWarning(e);
+                Debug.LogException(e);
                 return default;
             }
         }

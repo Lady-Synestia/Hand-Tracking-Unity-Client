@@ -21,18 +21,24 @@ public class HandController : MonoBehaviour
         HandTrackingAPI.Activate();
     }
 
-    public void UpdateHandPositions()
+    public void UpdateHandPositions(bool RightDataReceived, bool LeftDataReceived)
     {
         // iterating through the stored positions to update the in-game transforms
         for (int i = 0; i < 23; i++) 
         {
-            // getting points from api by index
-            Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
-            Vector3 lpoint = HandTrackingAPI.GetLandmark(i, HandType.Left);
+            if (RightDataReceived)
+            {
+                // getting points from api by index
+                Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
+                // Debug.Log(point);
+                RightHand.SetChildPosition(i, rpoint);
+            }
+            if (LeftDataReceived)
+            {
+                Vector3 lpoint = HandTrackingAPI.GetLandmark(i, HandType.Left);
+                LeftHand.SetChildPosition(i, lpoint);
 
-            // Debug.Log(point);
-            RightHand.SetChildPosition(i, rpoint);
-            LeftHand.SetChildPosition(i, lpoint);
+            }            
         } 
     }
 }

@@ -18,7 +18,7 @@ public class EventManager : MonoBehaviour
     {
         if (e.Success)
         {
-            handController.UpdateHandPositions();
+            handController.UpdateHandPositions(e.RightDataReceived, e.LeftDataReceived);
         }
     }
 }
