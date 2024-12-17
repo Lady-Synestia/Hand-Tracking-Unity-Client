@@ -4,6 +4,7 @@ namespace HandTrackingModule
     using UnityEngine;
     using System.Collections.Generic;
     using HandTrackingModule.Websocket;
+    using Newtonsoft.Json;
 
     public enum Gesture
     {
@@ -361,18 +362,7 @@ namespace HandTrackingModule
         }
         public void SetFromJson(string json)
         {
-            handPoints.PointsFromJson(json);
-            int n = 0;
-            foreach (Vector3 point in handPoints.GetPoints())
-            {
-                string key = $"point{n}";
-                // adds the key-value pair if key isnt already present, otherwise sets the value
-                if (!Landmarks.TryAdd(key, point))
-                {
-                    Landmarks[key] = point;
-                }
-                n++;
-            }
+            Landmarks = JsonConvert.DeserializeObject<Dictionary<string, Vector3>>(json);
         }
     }
 
