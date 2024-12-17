@@ -262,81 +262,8 @@ namespace HandTrackingModule
         }
     }
 
-    [Serializable]
-    struct HandPoints
-    {
-        public Vector3 point0;
-        public Vector3 point1;
-        public Vector3 point2;
-        public Vector3 point3;
-        public Vector3 point4;
-        public Vector3 point5;
-        public Vector3 point6;
-        public Vector3 point7;
-        public Vector3 point8;
-        public Vector3 point9;
-        public Vector3 point10;
-        public Vector3 point11;
-        public Vector3 point12;
-        public Vector3 point13;
-        public Vector3 point14;
-        public Vector3 point15;
-        public Vector3 point16;
-        public Vector3 point17;
-        public Vector3 point18;
-        public Vector3 point19;
-        public Vector3 point20;
-
-        public void PointsFromJson(string json)
-        {
-            try
-            {
-                // Debug.Log(json);
-                this = JsonUtility.FromJson<HandPoints>(json);
-            }
-            catch (NullReferenceException e)
-            {
-                Debug.LogWarning("Warning: Json not received from websocket\n" + e);
-            }
-        }
-
-        /// <summary>
-        /// C# Iterators 
-        /// https://learn.microsoft.com/en-us/dotnet/csharp/iterators
-        /// </summary>
-        // allows iteration over the struct
-        public IEnumerable<Vector3> GetPoints()
-        {
-            yield return point0;
-            yield return point1;
-            yield return point2;
-            yield return point3;
-            yield return point4;
-            yield return point5;
-            yield return point6;
-            yield return point7;
-            yield return point8;
-            yield return point9;
-            yield return point10;
-            yield return point11;
-            yield return point12;
-            yield return point13;
-            yield return point14;
-            yield return point15;
-            yield return point16;
-            yield return point17;
-            yield return point18;
-            yield return point19;
-            yield return point20;
-        }
-
-    }
-
     class HandData
     {
-        // temp structure while refactoring
-        public HandPoints handPoints;
-
         private Dictionary<string, Vector3> Landmarks = new();
         public HandType Hand { get; }
         public Gesture Gesture { get; private set; }
