@@ -5,6 +5,7 @@ namespace HandTrackingModule
     using System.Collections.Generic;
     using HandTrackingModule.Websocket;
     using Newtonsoft.Json;
+    using Unity.VisualScripting;
 
     public enum Gesture
     {
@@ -202,11 +203,11 @@ namespace HandTrackingModule
         public void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; ReceiveTypes[c] = true; }
 
 
-        private bool ReceiveTypeValidation(ReceiveType type)
+        private bool ReceiveTypeValidation(ReceiveType type, HandType hand)
         {
             try
             {
-                if (!ReceiveTypes[type])
+                if (!(ReceiveTypes[type] && HandsData[hand].HasValue(type)))
                 {
                     throw new ReceiveTypeException(type);
                 }
@@ -214,14 +215,14 @@ namespace HandTrackingModule
             }
             catch (ReceiveTypeException e)
             {
-                Debug.LogError(e);
+                Debug.LogWarning(e);
                 return false;
             }
         }
 
         public Vector3 GetLandmark(string name, HandType hand = HandType.Right)
         {
-            if (ReceiveTypeValidation(ReceiveType.Landmarks))
+            if (ReceiveTypeValidation(ReceiveType.Landmarks, hand))
             {
                 return HandsData[hand].GetPoint(name);
             }
@@ -230,7 +231,7 @@ namespace HandTrackingModule
         // method overloading so GetLandmark() can be called with an index instead of a string
         public Vector3 GetLandmark(int index, HandType hand = HandType.Right)
         {
-            if (ReceiveTypeValidation(ReceiveType.Landmarks))
+            if (ReceiveTypeValidation(ReceiveType.Landmarks, hand))
             {
                 return HandsData[hand].GetPoint($"{index}");
             }
@@ -239,7 +240,7 @@ namespace HandTrackingModule
 
         public Gesture GetGesture(HandType hand = HandType.Right)
         {
-            if (ReceiveTypeValidation(ReceiveType.Gesture))
+            if (ReceiveTypeValidation(ReceiveType.Gesture, hand))
             {
                 return HandsData[hand].Gesture;
             }
@@ -248,7 +249,7 @@ namespace HandTrackingModule
 
         public Orientation GetOrientation(HandType hand = HandType.Right)
         {
-            if (ReceiveTypeValidation(ReceiveType.Orientation))
+            if (ReceiveTypeValidation(ReceiveType.Orientation, hand))
             {
                 return HandsData[hand].Orientation;
             }
