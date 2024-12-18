@@ -5,7 +5,6 @@ namespace HandTrackingModule
     using System.Collections.Generic;
     using HandTrackingModule.Websocket;
     using Newtonsoft.Json;
-    using UnityEditor.VersionControl;
 
     public enum Gesture
     {
