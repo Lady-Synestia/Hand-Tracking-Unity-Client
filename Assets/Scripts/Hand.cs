@@ -22,6 +22,9 @@ public class Hand : MonoBehaviour
 
     public void SetChildPosition(int childIndex, Vector3 position)
     {
-        childTransforms[childIndex].position = position * distanceMultiplier;
+        if(childTransforms[childIndex] != null)
+        {
+            childTransforms[childIndex].position = position * distanceMultiplier;
+        }
     }
 }
