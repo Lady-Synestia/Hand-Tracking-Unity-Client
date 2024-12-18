@@ -19,7 +19,7 @@ public class HandController : MonoBehaviour
 
     private void Start()
     {
-        HandTrackingAPI.SetReceiveTypes(ReceiveType.Landmarks);
+        HandTrackingAPI.SetReceiveTypes(ReceiveType.Landmarks, ReceiveType.Gesture, ReceiveType.Direction);
         HandTrackingAPI.Activate();
     }
 

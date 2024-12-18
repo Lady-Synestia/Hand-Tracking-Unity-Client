@@ -8,6 +8,7 @@ namespace HandTrackingModule
 
     public enum Gesture
     {
+        None,
         MiddleFinger,
         ThumbsUp,
         Fist,
@@ -20,7 +21,7 @@ namespace HandTrackingModule
         Number3
     }
 
-    public enum Direction
+    public enum Orientation
     {
         Up,
         Down,
@@ -65,7 +66,7 @@ namespace HandTrackingModule
         Vector3 GetLandmark(string name, HandType hand);
         Vector3 GetLandmark(int i, HandType hand);
         Gesture GetGesture(HandType hand);
-        Direction GetDirection(HandType hand);
+        Orientation GetOrientation(HandType hand);
     }
 
     class HandTrackingSystem : MonoBehaviour, IHandTracking
@@ -133,7 +134,9 @@ namespace HandTrackingModule
             };
             try
             {
-                // splitting received string into array of substrings
+                HandsData = JsonConvert.DeserializeObject<Dictionary<HandType, HandData>>(json);
+
+                /*// splitting received string into array of substrings
                 string[] jsonStrings = json.Trim('[', ']').Split("], [");
 
                 // debugging
@@ -150,7 +153,7 @@ namespace HandTrackingModule
                         HandsData[HandType.Right].SetFromJson(jsonStrings[0]);
                         args.RightDataReceived = true;
                         break;
-                }
+                }*/
                 args.Success = true;
             }
             catch (Exception e)
@@ -255,22 +258,23 @@ namespace HandTrackingModule
             return default;
         }
 
-        public Direction GetDirection(HandType hand = HandType.Right)
+        public Orientation GetOrientation(HandType hand = HandType.Right)
         {
             if (ReceiveTypeValidation(ReceiveType.Direction))
             {
-                return HandsData[hand].Direction;
+                return HandsData[hand].Orientation;
             }
             return default;
         }
     }
 
+    [Serializable]
     class HandData
     {
         private Dictionary<string, Vector3> Landmarks = new();
         public HandType Hand { get; }
         public Gesture Gesture { get; private set; }
-        public Direction Direction {  get; private set; }
+        public Orientation Orientation {  get; private set; }
         public HandData(HandType hand) { Hand = hand; }
 
         public Vector3 GetPoint(string key)
