@@ -105,7 +105,6 @@ namespace HandTrackingModule
 
         private void Update()
         {
-
             // prevents ReceiveData call before connection has been established
             if (ConnectionSuccessfull)
             {
@@ -135,14 +134,12 @@ namespace HandTrackingModule
 
                 args.RightDataReceived = CheckTypesReceived(HandsData[HandType.Right]);
                 args.LeftDataReceived = CheckTypesReceived(HandsData[HandType.Left]);
-
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
                 args.Success = false;
             }
-            
             DataReceivedEvent?.Invoke(this, args);
         }
 
