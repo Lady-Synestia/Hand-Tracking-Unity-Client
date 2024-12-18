@@ -99,21 +99,21 @@ namespace HandTrackingModule.Websocket
         /// </summary>
         /// <param name="message"></param>
         /// <returns>request status code</returns>
-        public async Task<WSRC> SendModeRequest(string message)
+        public async Task<WSRC> SendModeRequest(string handshakeCode)
         {
             try
             {
                 if (!isActive) { throw new WebsocketNotActiveException(); }
 
-                sendBuffer = Encoding.UTF8.GetBytes(message);
+                sendBuffer = Encoding.UTF8.GetBytes(handshakeCode);
                 await ws.SendAsync(sendBuffer, WebSocketMessageType.Text, true, default);
 
                 // receiving handshake confirmation
-                var task = await ws.ReceiveAsync(receiveBuffer, default);
-                if (task.EndOfMessage)
+                var result = await ws.ReceiveAsync(receiveBuffer, default);
+                string echo = Encoding.UTF8.GetString(receiveBuffer, 0, result.Count);
+                if (echo == handshakeCode)
                 {
-                    string response = Encoding.UTF8.GetString(receiveBuffer);
-                    Debug.Log($"Handshake successful: {response}");
+                    Debug.Log($"Handshake successful: {echo}");
                 }
                 else
                 {

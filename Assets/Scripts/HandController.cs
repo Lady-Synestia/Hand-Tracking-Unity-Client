@@ -32,7 +32,7 @@ public class HandController : MonoBehaviour
             {
                 // getting points from api by index
                 Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
-                // Debug.Log(point);
+                Debug.Log(rpoint);
                 RightHand.SetChildPosition(i, rpoint);
             }
             if (LeftDataReceived)

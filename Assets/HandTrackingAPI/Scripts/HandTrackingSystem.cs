@@ -135,25 +135,7 @@ namespace HandTrackingModule
             try
             {
                 HandsData = JsonConvert.DeserializeObject<Dictionary<HandType, HandData>>(json);
-
-                /*// splitting received string into array of substrings
-                string[] jsonStrings = json.Trim('[', ']').Split("], [");
-
-                // debugging
-                if (jsonStrings.Length < 2) { Debug.LogWarning("Warning: Only one hand detected"); }
-
-                // currently prefers right hand to left if there is only one set of hand points
-                switch (jsonStrings.Length)
-                {
-                    case 2:
-                        HandsData[HandType.Left].SetFromJson(jsonStrings[1]);
-                        args.LeftDataReceived = true;
-                        goto case 1;
-                    case 1:
-                        HandsData[HandType.Right].SetFromJson(jsonStrings[0]);
-                        args.RightDataReceived = true;
-                        break;
-                }*/
+                Debug.Log(HandsData[HandType.Left].GetPoint("1"));
                 args.Success = true;
             }
             catch (Exception e)
@@ -244,7 +226,7 @@ namespace HandTrackingModule
         {
             if (ReceiveTypeValidation(ReceiveType.Landmarks))
             {
-                return HandsData[hand].GetPoint($"point{index}");
+                return HandsData[hand].GetPoint($"{index}");
             }
             return default;
         }
@@ -298,6 +280,7 @@ namespace HandTrackingModule
         {
             Landmarks = JsonConvert.DeserializeObject<Dictionary<string, Vector3>>(json);
         }
+
     }
 
 }
