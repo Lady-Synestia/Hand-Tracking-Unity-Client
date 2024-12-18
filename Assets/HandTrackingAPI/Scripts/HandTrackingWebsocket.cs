@@ -117,7 +117,7 @@ namespace HandTrackingModule.Websocket
                 }
                 else
                 {
-                    throw new Exception("Handshake failed");
+                    // throw new Exception("Handshake failed");
                 }
             }
             catch (Exception e)
@@ -150,7 +150,6 @@ namespace HandTrackingModule.Websocket
                     {
                         semaphore.Release();
                     }
-                    Debug.Log(JsonString);
                     // delegate call for HandTrackingSystem
                     DataReceivedDel(JsonString);
                 }
