@@ -19,7 +19,7 @@ public class HandController : MonoBehaviour
 
     private void Start()
     {
-        HandTrackingAPI.SetReceiveTypes(ReceiveType.Landmarks, ReceiveType.Gesture, ReceiveType.Direction);
+        HandTrackingAPI.SetReceiveTypes(ReceiveType.Landmarks, ReceiveType.Gesture, ReceiveType.Orientation);
         HandTrackingAPI.Activate();
     }
 
@@ -32,7 +32,6 @@ public class HandController : MonoBehaviour
             {
                 // getting points from api by index
                 Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
-                Debug.Log(rpoint);
                 RightHand.SetChildPosition(i, rpoint);
             }
             if (LeftDataReceived)
