@@ -6,6 +6,8 @@ public class HandController : MonoBehaviour
     [Header("Hand Transforms")]
     public Hand RightHand;
     public Hand LeftHand;
+    public Transform LeftMainChild;
+    public Transform RightMainChild;
 
     [Header("Hand Tracking API")]
     public IHandTracking HandTrackingAPI;
@@ -23,8 +25,8 @@ public class HandController : MonoBehaviour
 
     public void UpdateHandPositions(bool RightDataReceived, bool LeftDataReceived)
     {
-        // iterating through the stored positions to update the in-game transforms
-        for (int i = 0; i < 23; i++) 
+        // iterating through the stored positions to update the in-game transforms       
+        for (int i = 0; i < 21; i++)
         {
             if (RightDataReceived)
             {
@@ -37,8 +39,7 @@ public class HandController : MonoBehaviour
             {
                 Vector3 lpoint = HandTrackingAPI.GetLandmark(i, HandType.Left);
                 LeftHand.SetChildPosition(i, lpoint);
-
-            }            
-        } 
+            }
+        }
     }
 }
