@@ -164,8 +164,11 @@ namespace HandTrackingModule
 
         private string GenerateTypeRequestCode()
         {
-            char[] code = new char[3];
-            int i = 0;
+            char[] code = new char[4];
+            int i = 1;
+
+            // the : is so that the python socket side can discriminate between this and messages from its socket sender
+            code[0] = ':';
             foreach (bool value in ReceiveTypes.Values)
             {
                 code[i] = value ? '1' : '0';
