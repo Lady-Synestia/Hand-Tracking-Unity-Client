@@ -5,6 +5,7 @@ public class HandController : MonoBehaviour
 {
     [Header("Hand Transforms")]
     public Hand RightHand;
+    public Hand RightHandTrackingPoints;
     public Hand LeftHand;
     public Transform LeftMainChild;
     public Transform RightMainChild;
@@ -33,6 +34,7 @@ public class HandController : MonoBehaviour
                 // getting points from api by index
                 Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
                 RightHand.SetChildPosition(i, rpoint);
+                RightHandTrackingPoints.SetChildPosition(i, rpoint);
             }
             if (LeftDataReceived)
             {

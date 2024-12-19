@@ -7,7 +7,7 @@ public class Hand : MonoBehaviour
     // Multiplier for raw position data
     // stops points from being so clustered
     // TODO: fix offset caused by multiplier
-    const int distanceMultiplier = -1;
+    const float distanceMultiplier = 0.5f;
 
     private void Start()
     {
