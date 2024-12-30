@@ -5,7 +5,6 @@ namespace HandTrackingModule
     using System.Collections.Generic;
     using HandTrackingModule.Websocket;
     using Newtonsoft.Json;
-    using Unity.VisualScripting;
 
     public enum Gesture
     {
@@ -30,7 +29,7 @@ namespace HandTrackingModule
         Left,
         Right
     }
-
+    
     public enum HandType
     {
         Right,
@@ -73,8 +72,8 @@ namespace HandTrackingModule
 
     class HandTrackingSystem : MonoBehaviour, IHandTracking
     {
-        private WebsocketListener WSListener = new();
-        private Dictionary<ReceiveType, bool> ReceiveTypes = new() 
+        private WebsocketListener _wsListener = new();
+        private Dictionary<ReceiveType, bool> _receiveTypes = new() 
         {
             { ReceiveType.Landmarks, false },
             { ReceiveType.Orientation, false },
@@ -82,13 +81,13 @@ namespace HandTrackingModule
         };
 
         // data for each hand
-        private Dictionary<HandType, HandData> HandsData = new()
+        private Dictionary<HandType, HandData> _handsData = new()
         {
             { HandType.Right, new()},
             { HandType.Left, new()}
         };
 
-        private bool ConnectionSuccessfull = false;
+        private bool _connectionSuccess = false;
 
         /// <summary>
         /// Event Delegates 
@@ -101,27 +100,28 @@ namespace HandTrackingModule
         private void Start()
         {
             // DataReceived() will be called when WSListener receives data
-            WSListener.DataReceivedDel += DataReceived;
+            _wsListener.DataReceivedDel += DataReceived;
         }
 
         private void Update()
         {
             // prevents ReceiveData call before connection has been established
-            if (ConnectionSuccessfull)
+            if (_connectionSuccess)
             {
                 // ReceiveData() uses semaphores for thread control, so does not need to be awaited
-                WSListener.ReceiveData();
+                _wsListener.ReceiveData();
             }
         }
 
         private async void OnApplicationQuit()
         {
-            WSRC status = await WSListener.CloseSocket();
+            WSRC status = await _wsListener.CloseSocket();
             Debug.Log($"Closed websocket connection: {status}");
         }
 
         private void DataReceived(string json)
         {
+            Debug.Log(json);
             // initialising arguments and setting default values
             DataReceivedEventArgs args = new()
             {
@@ -131,10 +131,10 @@ namespace HandTrackingModule
             };
             try
             {
-                HandsData = JsonConvert.DeserializeObject<Dictionary<HandType, HandData>>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, ObjectCreationHandling = ObjectCreationHandling.Reuse});
+                _handsData = JsonConvert.DeserializeObject<Dictionary<HandType, HandData>>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, ObjectCreationHandling = ObjectCreationHandling.Reuse});
 
-                args.RightDataReceived = CheckTypesReceived(HandsData[HandType.Right]);
-                args.LeftDataReceived = CheckTypesReceived(HandsData[HandType.Left]);
+                args.RightDataReceived = CheckTypesReceived(_handsData[HandType.Right]);
+                args.LeftDataReceived = CheckTypesReceived(_handsData[HandType.Left]);
             }
             catch (Exception e)
             {
@@ -146,7 +146,7 @@ namespace HandTrackingModule
 
         private bool CheckTypesReceived(HandData hand)
         {
-            foreach (KeyValuePair<ReceiveType, bool> kvp in ReceiveTypes)
+            foreach (KeyValuePair<ReceiveType, bool> kvp in _receiveTypes)
             {
                 if (hand.HasValue(kvp.Key)) { return true; }
             }
@@ -160,7 +160,7 @@ namespace HandTrackingModule
 
             // the : is so that the python socket side can discriminate between this and messages from its socket sender
             code[0] = ':';
-            foreach (bool value in ReceiveTypes.Values)
+            foreach (bool value in _receiveTypes.Values)
             {
                 code[i] = value ? '1' : '0';
                 i++;
@@ -174,20 +174,20 @@ namespace HandTrackingModule
         {
             try
             {
-                if (!ReceiveTypes.ContainsValue(true))
+                if (!_receiveTypes.ContainsValue(true))
                 {
                     throw new Exception("No receive mode set, websocket cannot activate");
                 }
                 {
-                    WSRC status = await WSListener.OpenSocket();
+                    WSRC status = await _wsListener.OpenSocket();
                     Debug.Log($"Websocket connection: {status}");
                 }
                 {
-                    WSRC status = await WSListener.SendModeRequest(GenerateHandshakeCode());
+                    WSRC status = await _wsListener.SendModeRequest(GenerateHandshakeCode());
                     Debug.Log($"Websocket mode request sent: {status}");
                     if (status == WSRC.Success)
                     {
-                        ConnectionSuccessfull = true;
+                        _connectionSuccess = true;
                     }
                 }
             }
@@ -198,16 +198,16 @@ namespace HandTrackingModule
         }
 
         // method overloading so SetReceiveTypes can be called with 1-3 modes in any order
-        public void SetReceiveTypes(ReceiveType a) { ReceiveTypes[a] = true; }
-        public void SetReceiveTypes(ReceiveType a, ReceiveType b) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; }
-        public void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c) { ReceiveTypes[a] = true; ReceiveTypes[b] = true; ReceiveTypes[c] = true; }
+        public void SetReceiveTypes(ReceiveType a) { _receiveTypes[a] = true; }
+        public void SetReceiveTypes(ReceiveType a, ReceiveType b) { _receiveTypes[a] = true; _receiveTypes[b] = true; }
+        public void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c) { _receiveTypes[a] = true; _receiveTypes[b] = true; _receiveTypes[c] = true; }
 
 
         private bool ReceiveTypeValidation(ReceiveType type, HandType hand)
         {
             try
             {
-                if (!(ReceiveTypes[type] && HandsData[hand].HasValue(type)))
+                if (!(_receiveTypes[type] && _handsData[hand].HasValue(type)))
                 {
                     throw new ReceiveTypeException(type);
                 }
@@ -224,7 +224,7 @@ namespace HandTrackingModule
         {
             if (ReceiveTypeValidation(ReceiveType.Landmarks, hand))
             {
-                return HandsData[hand].GetPoint(name);
+                return _handsData[hand].GetPoint(name);
             }
             return default;
         }
@@ -233,7 +233,7 @@ namespace HandTrackingModule
         {
             if (ReceiveTypeValidation(ReceiveType.Landmarks, hand))
             {
-                return HandsData[hand].GetPoint($"{index}");
+                return _handsData[hand].GetPoint($"{index}");
             }
             return default;
         }
@@ -242,7 +242,7 @@ namespace HandTrackingModule
         {
             if (ReceiveTypeValidation(ReceiveType.Gesture, hand))
             {
-                return HandsData[hand].Gesture;
+                return _handsData[hand].Gesture;
             }
             return default;
         }
@@ -251,7 +251,7 @@ namespace HandTrackingModule
         {
             if (ReceiveTypeValidation(ReceiveType.Orientation, hand))
             {
-                return HandsData[hand].Orientation;
+                return _handsData[hand].Orientation;
             }
             return default;
         }

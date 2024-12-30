@@ -1,4 +1,4 @@
-// hides websocket funcitonality from main module namespace
+// hides websocket functionality from main module namespace
 namespace HandTrackingModule.Websocket
 {
     using System;
@@ -33,7 +33,7 @@ namespace HandTrackingModule.Websocket
     class WebsocketListener
     {
         public Del DataReceivedDel;
-        public bool isActive;
+        public bool IsActive;
 
         /// <summary>
         /// Semaphore code and docs
@@ -42,22 +42,22 @@ namespace HandTrackingModule.Websocket
         /// </summary>
         // Semaphore is used to stop too many processes running in the thread pool
         // In this case there should only be one data receival running at once
-        private static SemaphoreSlim semaphore = new(1);
+        private static SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
         /// websockets docs
         /// websocket support > https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets
         /// ClientWebSocket class > https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket?view=net-9.0
         /// </summary>
-        private ClientWebSocket ws = new();
-        private Uri uri = new("ws://localhost:8765");
-        private byte[] sendBuffer;
-        private byte[] receiveBuffer = new byte[4096];
+        private ClientWebSocket _ws = new();
+        private Uri _uri = new("ws://localhost:8765");
+        private byte[] _sendBuffer;
+        private byte[] _receiveBuffer = new byte[4096];
 
-        private string JsonString;
+        private string _jsonString;
 
         // common exception handling for all methods
-        private WSRC HandleException(Exception e)
+        private static WSRC HandleException(Exception e)
         {
             switch (e)
             {
@@ -80,15 +80,15 @@ namespace HandTrackingModule.Websocket
 
             try
             {
-                if (!isActive)
+                if (!IsActive)
                 {
-                    isActive = true;
-                    await ws.ConnectAsync(uri, default);
+                    IsActive = true;
+                    await _ws.ConnectAsync(_uri, default);
                 }
             }
             catch (Exception e)
             {
-                isActive = false;
+                IsActive = false;
                 return HandleException(e);
             }
             return WSRC.Success;
@@ -103,14 +103,14 @@ namespace HandTrackingModule.Websocket
         {
             try
             {
-                if (!isActive) { throw new WebsocketNotActiveException(); }
+                if (!IsActive) { throw new WebsocketNotActiveException(); }
 
-                sendBuffer = Encoding.UTF8.GetBytes(handshakeCode);
-                await ws.SendAsync(sendBuffer, WebSocketMessageType.Text, true, default);
+                _sendBuffer = Encoding.UTF8.GetBytes(handshakeCode);
+                await _ws.SendAsync(_sendBuffer, WebSocketMessageType.Text, true, default);
 
                 // receiving handshake confirmation
-                var result = await ws.ReceiveAsync(receiveBuffer, default);
-                string echo = Encoding.UTF8.GetString(receiveBuffer, 0, result.Count);
+                var result = await _ws.ReceiveAsync(_receiveBuffer, default);
+                string echo = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
                 if (echo == handshakeCode)
                 {
                     Debug.Log($"Handshake successful: {echo}");
@@ -137,21 +137,21 @@ namespace HandTrackingModule.Websocket
             {
                 // semaphore timeout is set to 0
                 // prevents receive requests from backing up
-                if (await semaphore.WaitAsync(0))
+                if (await _semaphore.WaitAsync(0))
                 {
                     try
                     {
-                        if (!isActive) { throw new WebsocketNotActiveException(); }
+                        if (!IsActive) { throw new WebsocketNotActiveException(); }
 
-                        var result = await ws.ReceiveAsync(receiveBuffer, default);
-                        JsonString = Encoding.UTF8.GetString(receiveBuffer, 0, result.Count);
+                        var result = await _ws.ReceiveAsync(_receiveBuffer, default);
+                        _jsonString = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
                     }
                     finally
                     {
-                        semaphore.Release();
+                        _semaphore.Release();
                     }
                     // delegate call for HandTrackingSystem
-                    DataReceivedDel(JsonString);
+                    DataReceivedDel(_jsonString);
                 }
                 else
                 {
@@ -173,9 +173,9 @@ namespace HandTrackingModule.Websocket
         {
             try
             {
-                if (!isActive) { throw new WebsocketNotActiveException(); }
+                if (!IsActive) { throw new WebsocketNotActiveException(); }
 
-                await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
+                await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
             }
             catch (Exception e)
             {

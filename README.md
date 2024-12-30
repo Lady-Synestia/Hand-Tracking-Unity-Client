@@ -1,4 +1,4 @@
-# Unity Client Project for our [Hand Tracking API](https://github.com/Lady-Synestia/Hand-Tracking-API/)
+# _**Unity Client Module for our [Hand Tracking API](https://github.com/Lady-Synestia/Hand-Tracking-API/)**_
 
 ## Usage
 
@@ -23,7 +23,7 @@ public class HandController : MonoBehaviour
 
     private void Awake()
     {
-        // Getting reference for IHandTracking]
+        // Getting reference for IHandTracking
         // HandTrackingSystem.cs needs to be a component of the same GameObject as this script
         HandTrackingAPI = GetComponent<HandTrackingSystem>();
     }
@@ -50,11 +50,11 @@ public class HandController : MonoBehaviour
 }
 ```
 
-## Module Definitions
+# API Reference
 
-### **Functions**
+## Interface Methods
 
-#### *Activate*:
+### Activate:
 
 ```cs
 public void IHandTracking.Activate()
@@ -62,7 +62,7 @@ public void IHandTracking.Activate()
 
 Activates the websocket, should be used after `SetReceiveTypes`.
 
-#### *SetReceiveTypes*:
+### SetReceiveTypes:
 
 ```cs
 public void SetReceiveTypes(ReceiveType a | ReceiveType a, ReceiveType b |  ReceiveType a, ReceiveType b, ReceiveType c)
@@ -70,44 +70,88 @@ public void SetReceiveTypes(ReceiveType a | ReceiveType a, ReceiveType b |  Rece
 
 Takes 1-3 `ReceiveTypes` as parameters, tells the API what data to send across the websocket.
 
-#### *GetLandmark*:
+### GetLandmark:
 
 ```cs
 Vector3 GetLandmark(string name, HandType hand | int index, HandType hand)
 ```
 
-Takes either a `string` for the name of the Landmark, or an `integer` denoting its index.<br>
+Takes either a `string` for the name of the Landmark, or an `integer` denoting its index.\
 Optionally takes a `HandType` to request Landmark data for the left or right hand (defaults to right hand).
 
-#### *GetGesture*
+### GetGesture:
+
 ```cs
 public Gesture GetGesture(HandType hand)
 ```
+
 Optionally takes a `HandType` to request Gesture data for the left or right hand (defaults to right)
 
-#### *GetDirection*
+### GetOrientation:
+
 ```cs
-public Direction GetDirection(HandType hand)
+public Orientation GetOrientation(HandType hand)
 ```
-Optionally takes a `HandType` to request Direction data for the left or right hand (defaults to right)
+
+Optionally takes a `HandType` to request Orientation data for the left or right hand (defaults to right)
 
 ---
 
-### **Event Delegate**
+## Event Delegate
 
-#### *DataReceivedEvent*:
+### DataReceivedEvent:
 
 ```cs
 event EventHandler<DataReceivedEventArgs> DataReceivedEvent
 ```
 
-**Parameters:**<br>
-`object sender` The HandTrackingSystem object that made the event call.<br>
+**Parameters:**\
+`object sender` The HandTrackingSystem object that made the event call.\
 `DataReceivedEventArgs e` Object containing relevant event arguments.
 
 Recommended to add this as an event in your event handling object.
 
-#### *DataReceivedEventArgs*:
+Example `EventManager.cs`:
+```cs
+using UnityEngine;
+using HandTrackingModule;
+...
+
+public class EventManager : MonoBehaviour
+{
+
+    ...
+    // reference to your hand controller class
+    [Header("HandController")]
+    public HandController handController;
+    ...
+
+    void Start()
+    {
+        ...
+        // subscribing the function WebsocketDataReceived() to the event
+        handController.HandTrackingAPI.DataReceivedEvent += WebsocketDataReceived;
+        ...
+    }
+
+    ...
+    // function to be called when the event is raised
+    void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
+    {
+        if (e.Success)
+        {   
+            // updates hands with new data
+            handController.UpdateHandPositions(e.RightDataReceived, e.LeftDataReceived);
+        }
+    }
+    ...
+}
+```
+
+
+[**Using the .NET EventHandler**](https://learn.microsoft.com/en-us/dotnet/api/system.eventhandler?view=net-9.0) | [**Handling and Raising Events**](https://learn.microsoft.com/en-us/dotnet/standard/events/)
+
+### DataReceivedEventArgs:
 
 ```cs
 public class DataReceivedEventArgs : Event Args
@@ -118,20 +162,21 @@ public class DataReceivedEventArgs : Event Args
 }
 ```
 
-**Fields:**<br>
-`Success` Whether or not the Json data was received and unpacked successfully.<br>
-`RightDataReceived` Whether or not data for the right hand was received.<br>
+**Fields:**\
+`Success` Whether or not the Json data was received and unpacked successfully.\
+`RightDataReceived` Whether or not data for the right hand was received.\
 `LeftDataReceived` Whether or not data for the left hand was received.
 
 ---
 
-### **Enums**
+## Enums
 
-#### *Gesture:*
+### Gesture:
 
 ```cs
 public enum Gesture
 {
+    None,
     MiddleFinger,
     ThumbsUp,
     Fist,
@@ -147,11 +192,12 @@ public enum Gesture
 
 Types of gesture that can be detected.
 
-#### *Direction:*
+### Orientation:
 
 ```cs
-public enum Direction
+public enum Orientation
 {
+    None,
     Up,
     Down,
     Left,
@@ -159,9 +205,9 @@ public enum Direction
 }
 ```
 
-Directions that can be detected.
+Orientations that can be detected.
 
-#### *HandType:*
+### HandType:
 
 ```cs
 public enum HandType
@@ -173,25 +219,17 @@ public enum HandType
 
 Type of hand that can be detected.
 
-#### *ReceiveType:*
+### ReceiveType:
 
 ```cs
 public enum ReceiveType
 {
     Landmarks,
     Gesture,
-    Direction
+    Orientation
 }
 ```
 
 Types of data that can be send across the websocket.
 
-
-## TODO
-
-#### Chloe:
-- Refactor Json deserialisation for updated Json format
-
-#### Ruby:
-- Fix current rig movement implementation
-- Come up with a way of moving the hands based on gestures and direction
+---
