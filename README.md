@@ -1,4 +1,4 @@
-# _**Unity Client Module for our [Hand Tracking API](https://github.com/Lady-Synestia/Hand-Tracking-API/)**_
+# Unity Client Module for our [Hand Tracking API](https://github.com/Lady-Synestia/Hand-Tracking-API/)
 
 ## Usage
 
