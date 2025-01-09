@@ -12,7 +12,7 @@ namespace HandTrackingModule.Websocket
     public delegate void Del(string json);
 
     // defining custom exception for websocket listener
-    class WebsocketNotActiveException : Exception
+    internal class WebsocketNotActiveException : Exception
     {
         public override string Message { get; }
         public WebsocketNotActiveException() { Message = "Websocket not active"; }
@@ -30,14 +30,14 @@ namespace HandTrackingModule.Websocket
         NotActive
     }
 
-    class WebsocketListener
+    public class WebsocketListener
     {
         public Del DataReceivedDel;
         public bool IsActive;
 
         /// <summary>
-        /// Semaphore code and docs
-        /// solution >  https://stackoverflow.com/a/21163280
+        /// Semaphore code and docs: <br/>
+        /// solution >  https://stackoverflow.com/a/21163280 <br/>
         /// SemaphoreSlim class > https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim?view=net-8.0
         /// </summary>
         // Semaphore is used to stop too many processes running in the thread pool
@@ -45,14 +45,14 @@ namespace HandTrackingModule.Websocket
         private static SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
-        /// websockets docs
-        /// websocket support > https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets
+        /// websockets docs: <br/>
+        /// websocket support > https://learn.microsoft.com/en-us/dotnet/fundamentals/networking/websockets <br/>
         /// ClientWebSocket class > https://learn.microsoft.com/en-us/dotnet/api/system.net.websockets.clientwebsocket?view=net-9.0
         /// </summary>
-        private ClientWebSocket _ws = new();
-        private Uri _uri = new("ws://localhost:8765");
+        private readonly ClientWebSocket _ws = new();
+        private readonly Uri _uri = new("ws://localhost:8765");
         private byte[] _sendBuffer;
-        private byte[] _receiveBuffer = new byte[4096];
+        private readonly byte[] _receiveBuffer = new byte[4096];
 
         private string _jsonString;
 
@@ -97,7 +97,7 @@ namespace HandTrackingModule.Websocket
         /// <summary>
         /// Attempts to send message over websocket
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="handshakeCode"></param>
         /// <returns>request status code</returns>
         public async Task<WSRC> SendModeRequest(string handshakeCode)
         {

@@ -8,13 +8,13 @@ public class EventManager : MonoBehaviour
     public HandController handController;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         // "subscribing" the function WebsocketDataReceived() to the event DataReceivedEvent
         handController.HandTrackingAPI.DataReceivedEvent += WebsocketDataReceived;
     }
 
-    void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
+    private void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
     {
         if (e.Success)
         {

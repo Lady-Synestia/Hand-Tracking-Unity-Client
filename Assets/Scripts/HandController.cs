@@ -1,13 +1,14 @@
 using UnityEngine;
 using HandTrackingModule;
+using UnityEngine.Serialization;
 
 public class HandController : MonoBehaviour
 {
     [Header("Hand Transforms")]
-    public Hand RightHand;
-    public Hand LeftHand;
-    public Transform LeftMainChild;
-    public Transform RightMainChild;
+    public Hand rightHand;
+    public Hand leftHand;
+    // public Transform LeftMainChild;
+    // public Transform RightMainChild;
 
     [Header("Hand Tracking API")]
     public IHandTracking HandTrackingAPI;
@@ -23,21 +24,21 @@ public class HandController : MonoBehaviour
         HandTrackingAPI.Activate();
     }
 
-    public void UpdateHandPositions(bool RightDataReceived, bool LeftDataReceived)
+    public void UpdateHandPositions(bool rightDataReceived, bool leftDataReceived)
     {
         // iterating through the stored positions to update the in-game transforms       
         for (int i = 0; i < 21; i++)
         {
-            if (RightDataReceived)
+            if (rightDataReceived)
             {
                 // getting points from api by index
-                Vector3 rpoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
-                RightHand.SetChildPosition(i, rpoint);
+                Vector3 rPoint = HandTrackingAPI.GetLandmark(i, HandType.Right);
+                rightHand.SetChildPosition(i, rPoint);
             }
-            if (LeftDataReceived)
+            if (leftDataReceived)
             {
-                Vector3 lpoint = HandTrackingAPI.GetLandmark(i, HandType.Left);
-                LeftHand.SetChildPosition(i, lpoint);
+                Vector3 lPoint = HandTrackingAPI.GetLandmark(i, HandType.Left);
+                leftHand.SetChildPosition(i, lPoint);
             }
         }
     }

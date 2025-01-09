@@ -2025,28 +2025,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c454ab04f6bd0044b49df34a47d1912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  childTransforms:
-  - {fileID: 28429869}
-  - {fileID: 167187789}
-  - {fileID: 415645163}
-  - {fileID: 1079680623}
-  - {fileID: 2117159454}
-  - {fileID: 1289246527}
-  - {fileID: 74486102}
-  - {fileID: 51670849}
-  - {fileID: 1128389822}
-  - {fileID: 2031500996}
-  - {fileID: 1091100027}
-  - {fileID: 1730471468}
-  - {fileID: 1709961421}
-  - {fileID: 1899226752}
-  - {fileID: 1088411230}
-  - {fileID: 1767874546}
-  - {fileID: 2112018382}
-  - {fileID: 1603073350}
-  - {fileID: 828570889}
-  - {fileID: 254918542}
-  - {fileID: 436472620}
 --- !u!1 &597155236
 GameObject:
   m_ObjectHideFlags: 0
@@ -2373,7 +2351,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c454ab04f6bd0044b49df34a47d1912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  childTransforms: []
 --- !u!4 &715711154 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3567014205494752340, guid: ae0e1597c9527de47a2ce09b99d55bc1, type: 3}
@@ -2694,7 +2671,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c454ab04f6bd0044b49df34a47d1912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  childTransforms: []
 --- !u!4 &853469850
 Transform:
   m_ObjectHideFlags: 0
@@ -2776,10 +2752,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c41944c4cf672441a8be6b7b9171c8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RightHand: {fileID: 707184014}
-  LeftHand: {fileID: 853469849}
-  LeftMainChild: {fileID: 0}
-  RightMainChild: {fileID: 0}
+  rightHand: {fileID: 707184014}
+  leftHand: {fileID: 853469849}
 --- !u!114 &874908675
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4327,11 +4301,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1229355985}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1236099304 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -4828859950940645806, guid: ae0e1597c9527de47a2ce09b99d55bc1, type: 3}
-  m_PrefabInstance: {fileID: 959080424}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1253928075
 GameObject:
   m_ObjectHideFlags: 0
@@ -6418,28 +6387,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c454ab04f6bd0044b49df34a47d1912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  childTransforms:
-  - {fileID: 1236099304}
-  - {fileID: 1905538810}
-  - {fileID: 1592574959}
-  - {fileID: 1660432018}
-  - {fileID: 1789422193}
-  - {fileID: 324112942}
-  - {fileID: 1255977316}
-  - {fileID: 2589162}
-  - {fileID: 563427750}
-  - {fileID: 1134712671}
-  - {fileID: 401008223}
-  - {fileID: 570259856}
-  - {fileID: 1286453186}
-  - {fileID: 1480993106}
-  - {fileID: 969011344}
-  - {fileID: 1763440345}
-  - {fileID: 715711154}
-  - {fileID: 2070481007}
-  - {fileID: 1351918000}
-  - {fileID: 2042964470}
-  - {fileID: 330963278}
 --- !u!4 &2070481007 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6312368085970625964, guid: ae0e1597c9527de47a2ce09b99d55bc1, type: 3}
