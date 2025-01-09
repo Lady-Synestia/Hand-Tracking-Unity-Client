@@ -1,4 +1,4 @@
-# _**Unity Client Module for our [Hand Tracking API](https://github.com/Lady-Synestia/Hand-Tracking-API/)**_
+# Unity Client Module for our [Hand Tracking API](https://github.com/Lady-Synestia/Hand-Tracking-API/)
 
 ## Usage
 
@@ -115,26 +115,26 @@ Example `EventManager.cs`:
 ```cs
 using UnityEngine;
 using HandTrackingModule;
-...
+// ...
 
 public class EventManager : MonoBehaviour
 {
 
-    ...
+    // ...
     // reference to your hand controller class
     [Header("HandController")]
     public HandController handController;
-    ...
+    // ...
 
     void Start()
     {
-        ...
+        // ...
         // subscribing the function WebsocketDataReceived() to the event
         handController.HandTrackingAPI.DataReceivedEvent += WebsocketDataReceived;
-        ...
+        // ...
     }
 
-    ...
+    // ...
     // function to be called when the event is raised
     void WebsocketDataReceived(object receiver, DataReceivedEventArgs e)
     {
@@ -144,7 +144,7 @@ public class EventManager : MonoBehaviour
             handController.UpdateHandPositions(e.RightDataReceived, e.LeftDataReceived);
         }
     }
-    ...
+    // ...
 }
 ```
 
