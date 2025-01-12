@@ -217,7 +217,7 @@ public enum HandType
 }
 ```
 
-Type of hand that can be detected.
+Types of hand that can be detected.
 
 ### ReceiveType:
 
@@ -230,6 +230,6 @@ public enum ReceiveType
 }
 ```
 
-Types of data that can be send across the websocket.
+Types of data that can be requested from the API.
 
 ---
