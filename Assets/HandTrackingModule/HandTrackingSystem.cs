@@ -4,7 +4,7 @@ namespace HandTrackingModule
     using UnityEngine;
     using System.Collections.Generic;
     using Newtonsoft.Json;
-    using HandTrackingModule.Websocket;
+    using WebSocket;  // internal namespace
     
     /// <summary>
     /// Event Arguments for the Data Received Event.
@@ -24,9 +24,9 @@ namespace HandTrackingModule
     /// </summary>
     internal class HandTrackingSystem : MonoBehaviour, IHandTracking
     {
-        private readonly WebsocketListener _wsListener = new();
+        private readonly WebSocketListener _wsListener = new();
 
-        private readonly Dictionary<ReceiveType, bool> _receiveTypes = new()
+        private Dictionary<ReceiveType, bool> _receiveTypes = new()
         {
             { ReceiveType.Landmarks, false },
             { ReceiveType.Orientation, false },

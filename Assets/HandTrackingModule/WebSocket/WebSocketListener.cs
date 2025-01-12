@@ -1,5 +1,5 @@
 // hides websocket functionality from main module namespace
-namespace HandTrackingModule.Websocket
+namespace HandTrackingModule.WebSocket
 {
     using System;
     using UnityEngine;
@@ -11,7 +11,7 @@ namespace HandTrackingModule.Websocket
     // defining delegate to be called when data is received 
     public delegate void Del(string json);
     
-    public class WebsocketListener
+    public class WebSocketListener
     {
         public Del DataReceivedDel;
         public bool IsActive;
@@ -42,7 +42,7 @@ namespace HandTrackingModule.Websocket
         {
             switch (e)
             {
-                case WebsocketNotActiveException:
+                case WebSocketNotActiveException:
                     return Wsrc.NotActive;
                 case SemaphoreFullException:
                     return Wsrc.SemaphoreFull;
@@ -83,7 +83,7 @@ namespace HandTrackingModule.Websocket
         {
             try
             {
-                if (!IsActive) { throw new WebsocketNotActiveException(); }
+                if (!IsActive) { throw new WebSocketNotActiveException(); }
 
                 _sendBuffer = Encoding.UTF8.GetBytes(handshakeCode);
                 await _ws.SendAsync(_sendBuffer, WebSocketMessageType.Text, true, default);
@@ -123,7 +123,7 @@ namespace HandTrackingModule.Websocket
                 {
                     try
                     {
-                        if (!IsActive) { throw new WebsocketNotActiveException(); }
+                        if (!IsActive) { throw new WebSocketNotActiveException(); }
 
                         var result = await _ws.ReceiveAsync(_receiveBuffer, default);
                         _jsonString = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
@@ -156,7 +156,7 @@ namespace HandTrackingModule.Websocket
         {
             try
             {
-                if (!IsActive) { throw new WebsocketNotActiveException(); }
+                if (!IsActive) { throw new WebSocketNotActiveException(); }
 
                 await _ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
             }

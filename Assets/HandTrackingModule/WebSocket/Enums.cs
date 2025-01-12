@@ -1,4 +1,4 @@
-﻿namespace HandTrackingModule.Websocket
+﻿namespace HandTrackingModule.WebSocket
 {
     /// <summary>
     /// Websocket Return Codes
