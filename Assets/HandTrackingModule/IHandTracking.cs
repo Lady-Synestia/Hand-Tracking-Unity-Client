@@ -1,8 +1,8 @@
-﻿namespace HandTrackingModule
+﻿using System;
+using UnityEngine;
+
+namespace HandTrackingModule
 {
-    using System;
-    using UnityEngine;
-    
     /// <summary>
     /// Interface for the API.
     /// Should be instantiated to interact with the system.

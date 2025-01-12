@@ -1,10 +1,11 @@
+using System;
+using UnityEngine;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using HandTrackingModule.WebSocket;
+
 namespace HandTrackingModule
 {
-    using System;
-    using UnityEngine;
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
-    using WebSocket;  // internal namespace
     
     /// <summary>
     /// Event Arguments for the Data Received Event.
@@ -25,6 +26,8 @@ namespace HandTrackingModule
     internal class HandTrackingSystem : MonoBehaviour, IHandTracking
     {
         private readonly WebSocketListener _wsListener = new();
+        
+        private bool _connectionSuccess;
 
         private Dictionary<ReceiveType, bool> _receiveTypes = new()
         {
@@ -42,8 +45,6 @@ namespace HandTrackingModule
             { HandType.Right, new HandData() },
             { HandType.Left, new HandData() }
         };
-
-        private bool _connectionSuccess = false;
 
         /// <summary>
         /// Event is called when data is received.
@@ -142,7 +143,6 @@ namespace HandTrackingModule
                     return true;
                 }
             }
-
             return false;
         }
 
@@ -180,19 +180,23 @@ namespace HandTrackingModule
             {
                 if (!_receiveTypes.ContainsValue(true))
                 {
-                    throw new Exception("No receive types set, websocket cannot activate");
+                    throw new Exception("No receive types set, WebSocket cannot activate");
                 }
 
                 {
                     Wsrc status = await _wsListener.OpenSocket();
-                    Debug.Log($"Websocket connection: {status}");
+                    Debug.Log($"WebSocket connection: {status}");
                 }
                 {
                     Wsrc status = await _wsListener.SendModeRequest(GenerateHandshakeCode());
-                    Debug.Log($"Websocket mode request sent: {status}");
                     if (status == Wsrc.Success)
                     {
+                        Debug.Log($"WebSocket mode request sent: {status}");
                         _connectionSuccess = true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"WebSocket mode request failed: {status}");
                     }
                 }
             }

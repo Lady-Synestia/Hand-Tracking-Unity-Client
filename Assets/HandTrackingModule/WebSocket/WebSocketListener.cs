@@ -1,12 +1,13 @@
+using System;
+using UnityEngine;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
 // hides websocket functionality from main module namespace
 namespace HandTrackingModule.WebSocket
 {
-    using System;
-    using UnityEngine;
-    using System.Net.WebSockets;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     // defining delegate to be called when data is received 
     public delegate void Del(string json);
@@ -46,6 +47,9 @@ namespace HandTrackingModule.WebSocket
                     return Wsrc.NotActive;
                 case SemaphoreFullException:
                     return Wsrc.SemaphoreFull;
+                case WebSocketException:
+                    Debug.LogWarning("Could not connect to the server. Check that the server is running and try again.");
+                    return Wsrc.Failure;
                 default:
                     Debug.LogException(e);
                     return Wsrc.Failure;
@@ -132,7 +136,7 @@ namespace HandTrackingModule.WebSocket
                     {
                         _semaphore.Release();
                     }
-                    if (_jsonString == "") { throw new Exception("No data received"); }
+                    if (_jsonString == "") { return Wsrc.Failure; }
                     // delegate call for HandTrackingSystem
                     DataReceivedDel(_jsonString);
                 }
