@@ -3,46 +3,9 @@ namespace HandTrackingModule
     using System;
     using UnityEngine;
     using System.Collections.Generic;
-    using HandTrackingModule.Websocket;
     using Newtonsoft.Json;
+    using HandTrackingModule.Websocket;
     
-    public enum Gesture
-    {
-        None,
-        MiddleFinger,
-        ThumbsUp,
-        Fist,
-        OpenPalm,
-        Ok,
-        Metal,
-        WebShooter,
-        Number1,
-        Number2,
-        Number3
-    }
-
-    public enum Orientation
-    {
-        None,
-        Up,
-        Down,
-        Left,
-        Right
-    }
-    
-    public enum HandType
-    {
-        Right,
-        Left
-    }
-
-    public enum ReceiveType
-    {
-        Landmarks,
-        Orientation,
-        Gesture
-    }
-
     /// <summary>
     /// Event Arguments for the Data Received Event.
     /// Stores flags showing if the data was received successfully,
@@ -56,23 +19,14 @@ namespace HandTrackingModule
     }
 
     /// <summary>
-    /// Custom exception for backend API data requests.
-    /// Thrown if the data type requested has not been received from the Backend API
-    /// </summary>
-    internal class ReceiveTypeException : Exception
-    {
-        public override string Message { get; }
-        public ReceiveTypeException(ReceiveType type) { Message = $"Not receiving data of type: {type}"; }
-    }
-    
-    /// <summary>
-    /// Controlling class for the whole system.
+    /// Controlling class for the module.
     /// Handles json deserialisation, and implements the IHandTracking Interface.
     /// </summary>
     internal class HandTrackingSystem : MonoBehaviour, IHandTracking
     {
         private readonly WebsocketListener _wsListener = new();
-        private readonly Dictionary<ReceiveType, bool> _receiveTypes = new() 
+
+        private readonly Dictionary<ReceiveType, bool> _receiveTypes = new()
         {
             { ReceiveType.Landmarks, false },
             { ReceiveType.Orientation, false },
@@ -80,13 +34,13 @@ namespace HandTrackingModule
         };
 
         /// <summary>
-        /// Storing the data for each hand.
+        /// Stores the current data for each hand.
         /// Keys are custom HandType enums.
         /// </summary>
         private Dictionary<HandType, HandData> _handsData = new()
         {
-            { HandType.Right, new HandData()},
-            { HandType.Left, new HandData()}
+            { HandType.Right, new HandData() },
+            { HandType.Left, new HandData() }
         };
 
         private bool _connectionSuccess = false;
@@ -112,14 +66,27 @@ namespace HandTrackingModule
             if (_connectionSuccess)
             {
                 // ReceiveData() uses semaphores for thread control, so does not need to be awaited
-                _wsListener.ReceiveData();
+                _ = _wsListener.ReceiveData();
             }
         }
 
         private async void OnApplicationQuit()
         {
-            WSRC status = await _wsListener.CloseSocket();
-            Debug.Log($"Closed websocket connection: {status}");
+            // defaults to failure
+            Wsrc status = default;
+            try
+            {
+                // status is overwritten if successful
+                status = await _wsListener.CloseSocket();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            finally
+            {
+                Debug.Log($"Closed websocket connection: {status}");
+            }
         }
 
         /// <summary>
@@ -129,7 +96,6 @@ namespace HandTrackingModule
         /// <param name="json">Json string received over websocket</param>
         private void DataReceived(string json)
         {
-            Debug.Log(json);
             // initialising arguments and setting default values
             DataReceivedEventArgs args = new()
             {
@@ -140,8 +106,13 @@ namespace HandTrackingModule
             try
             {
                 // using Newtonsoft Json.NET to deserialise into a dictionary containing data for both hands
-                _handsData = JsonConvert.DeserializeObject<Dictionary<HandType, HandData>>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, ObjectCreationHandling = ObjectCreationHandling.Reuse});
-                
+                _handsData = JsonConvert.DeserializeObject<Dictionary<HandType, HandData>>(json,
+                    new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        ObjectCreationHandling = ObjectCreationHandling.Reuse
+                    });
+
                 // checking that the correct data was received for each hand
                 args.RightDataReceived = CheckTypesReceived(_handsData[HandType.Right]);
                 args.LeftDataReceived = CheckTypesReceived(_handsData[HandType.Left]);
@@ -151,10 +122,11 @@ namespace HandTrackingModule
                 Debug.LogException(e);
                 args.Success = false;
             }
+
             // Calls any functions subscribed to the event
             DataReceivedEvent?.Invoke(this, args);
         }
-        
+
         /// <summary>
         /// returns true if the types received in the json data
         /// match with the requested types
@@ -165,8 +137,12 @@ namespace HandTrackingModule
         {
             foreach (ReceiveType key in _receiveTypes.Keys)
             {
-                if (hand.HasValue(key)) { return true; }
+                if (hand.HasValue(key))
+                {
+                    return true;
+                }
             }
+
             return false;
         }
 
@@ -189,6 +165,7 @@ namespace HandTrackingModule
                 code[i] = value ? '1' : '0';
                 i++;
             }
+
             return new string(code);
         }
 
@@ -205,14 +182,15 @@ namespace HandTrackingModule
                 {
                     throw new Exception("No receive types set, websocket cannot activate");
                 }
+
                 {
-                    WSRC status = await _wsListener.OpenSocket();
+                    Wsrc status = await _wsListener.OpenSocket();
                     Debug.Log($"Websocket connection: {status}");
                 }
                 {
-                    WSRC status = await _wsListener.SendModeRequest(GenerateHandshakeCode());
+                    Wsrc status = await _wsListener.SendModeRequest(GenerateHandshakeCode());
                     Debug.Log($"Websocket mode request sent: {status}");
-                    if (status == WSRC.Success)
+                    if (status == Wsrc.Success)
                     {
                         _connectionSuccess = true;
                     }
@@ -229,20 +207,34 @@ namespace HandTrackingModule
         /// Sets any of the 3 receive types. 1, 2, or 3 types can be passed in any order.
         /// </summary>
         /// <param name="a">First type parameter</param>
-        public void SetReceiveTypes(ReceiveType a) { _receiveTypes[a] = true; }
+        public void SetReceiveTypes(ReceiveType a)
+        {
+            _receiveTypes[a] = true;
+        }
+
         /// <summary>
         /// Sets any of the 3 receive types. 1, 2, or 3 types can be passed in any order.
         /// </summary>
         /// <param name="a">First type parameter</param>
         /// <param name="b">Second type parameter</param>
-        public void SetReceiveTypes(ReceiveType a, ReceiveType b) { _receiveTypes[a] = true; _receiveTypes[b] = true; }
+        public void SetReceiveTypes(ReceiveType a, ReceiveType b)
+        {
+            _receiveTypes[a] = true;
+            _receiveTypes[b] = true;
+        }
+
         /// <summary>
         /// Sets any of the 3 receive types. 1, 2, or 3 types can be passed in any order.
         /// </summary>
         /// <param name="a">First type parameter</param>
         /// <param name="b">Second type parameter</param>
         /// <param name="c">Third type parameter</param>
-        public void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c) { _receiveTypes[a] = true; _receiveTypes[b] = true; _receiveTypes[c] = true; }
+        public void SetReceiveTypes(ReceiveType a, ReceiveType b, ReceiveType c)
+        {
+            _receiveTypes[a] = true;
+            _receiveTypes[b] = true;
+            _receiveTypes[c] = true;
+        }
 
         /// <summary>
         /// Returns true if the type of data being requested has been received
@@ -259,6 +251,7 @@ namespace HandTrackingModule
                 {
                     throw new ReceiveTypeException(type);
                 }
+
                 return true;
             }
             catch (ReceiveTypeException e)
@@ -280,9 +273,10 @@ namespace HandTrackingModule
             {
                 return _handsData[hand].GetPoint(landmark);
             }
+
             return default;
         }
-        
+
         /// <summary>
         /// Gets the world position of a specified landmark
         /// </summary>
@@ -292,13 +286,14 @@ namespace HandTrackingModule
         public Vector3 GetLandmark(int index, HandType hand = HandType.Right)
         {
             // method overloaded so GetLandmark() can be called with an index instead of a string
-            
+
             if (ReceiveTypeValidation(ReceiveType.Landmarks, hand))
             {
                 // all landmark names are a string of their index
                 // if the landmark names are changed only this function needs to be refactored
                 return _handsData[hand].GetPoint($"{index}");
             }
+
             return default;
         }
 
@@ -313,9 +308,10 @@ namespace HandTrackingModule
             {
                 return _handsData[hand].Gesture;
             }
+
             return default;
         }
-        
+
         /// <summary>
         /// Gets the current Orientation of a specified hand
         /// </summary>
@@ -327,60 +323,8 @@ namespace HandTrackingModule
             {
                 return _handsData[hand].Orientation;
             }
+
             return default;
         }
     }
-    
-    /// <summary>
-    /// Internal class used to store deserialised hand data
-    /// </summary>
-    internal class HandData
-    {
-        // fields are public in order for the deserialisation to work correctly
-        public Dictionary<string, Vector3> Landmarks;
-        public Gesture Gesture;
-        public Orientation Orientation;
-
-        /// <summary>
-        /// Returns true if it is currently storing data of a particular type.
-        /// Used to make sure the correct data has been received from the websocket.
-        /// </summary>
-        /// <param name="type">The type to check</param>
-        /// <returns></returns>
-        public bool HasValue(ReceiveType type)
-        {
-            return type switch
-            {
-                ReceiveType.Landmarks => Landmarks != null,
-                ReceiveType.Orientation => Orientation != Orientation.None,
-                ReceiveType.Gesture => Gesture != Gesture.None,
-                _ => false
-            };
-        }
-
-        /// <summary>
-        /// Gets a 'point' from the landmarks dictionary
-        /// </summary>
-        /// <param name="key">Dictionary key corresponding to desired landmark</param>
-        /// <returns>Vector3 of the position of the point</returns>
-        /// <exception cref="Exception">Thrown if an invalid key is used</exception>
-        public Vector3 GetPoint(string key)
-        {
-            // only returns value if it is contained by the dictionary
-            try
-            {
-                if (!Landmarks.TryGetValue(key, out Vector3 point))
-                {
-                    throw new Exception($"{key} is not a valid landmark");
-                }
-                return point;
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                return default;
-            }
-        }
-    }
-
 }

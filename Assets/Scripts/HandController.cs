@@ -1,6 +1,5 @@
 using UnityEngine;
 using HandTrackingModule;
-using UnityEngine.Serialization;
 
 public class HandController : MonoBehaviour
 {

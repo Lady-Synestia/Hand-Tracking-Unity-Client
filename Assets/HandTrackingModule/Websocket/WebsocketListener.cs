@@ -10,26 +10,7 @@ namespace HandTrackingModule.Websocket
 
     // defining delegate to be called when data is received 
     public delegate void Del(string json);
-
-    // defining custom exception for websocket listener
-    internal class WebsocketNotActiveException : Exception
-    {
-        public override string Message { get; }
-        public WebsocketNotActiveException() { Message = "Websocket not active"; }
-
-    }
-
-    /// <summary>
-    /// Websocket Return Codes
-    /// </summary>
-    public enum WSRC
-    {
-        Success,
-        Failure,
-        SemaphoreFull,
-        NotActive
-    }
-
+    
     public class WebsocketListener
     {
         public Del DataReceivedDel;
@@ -41,8 +22,8 @@ namespace HandTrackingModule.Websocket
         /// SemaphoreSlim class > https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim?view=net-8.0
         /// </summary>
         // Semaphore is used to stop too many processes running in the thread pool
-        // In this case there should only be one data receival running at once
-        private static SemaphoreSlim _semaphore = new(1);
+        // In this case there should only be one data receive running at once
+        private readonly SemaphoreSlim _semaphore = new(1);
 
         /// <summary>
         /// websockets docs: <br/>
@@ -57,17 +38,17 @@ namespace HandTrackingModule.Websocket
         private string _jsonString;
 
         // common exception handling for all methods
-        private static WSRC HandleException(Exception e)
+        private static Wsrc HandleException(Exception e)
         {
             switch (e)
             {
                 case WebsocketNotActiveException:
-                    return WSRC.NotActive;
+                    return Wsrc.NotActive;
                 case SemaphoreFullException:
-                    return WSRC.SemaphoreFull;
+                    return Wsrc.SemaphoreFull;
                 default:
                     Debug.LogException(e);
-                    return WSRC.Failure;
+                    return Wsrc.Failure;
             }
         }
 
@@ -75,9 +56,8 @@ namespace HandTrackingModule.Websocket
         /// Attempts to connect to the websocket
         /// </summary>
         /// <returns>request status code</returns>
-        public async Task<WSRC> OpenSocket()
+        public async Task<Wsrc> OpenSocket()
         {
-
             try
             {
                 if (!IsActive)
@@ -91,7 +71,7 @@ namespace HandTrackingModule.Websocket
                 IsActive = false;
                 return HandleException(e);
             }
-            return WSRC.Success;
+            return Wsrc.Success;
         }
 
         /// <summary>
@@ -99,7 +79,7 @@ namespace HandTrackingModule.Websocket
         /// </summary>
         /// <param name="handshakeCode"></param>
         /// <returns>request status code</returns>
-        public async Task<WSRC> SendModeRequest(string handshakeCode)
+        public async Task<Wsrc> SendModeRequest(string handshakeCode)
         {
             try
             {
@@ -108,6 +88,7 @@ namespace HandTrackingModule.Websocket
                 _sendBuffer = Encoding.UTF8.GetBytes(handshakeCode);
                 await _ws.SendAsync(_sendBuffer, WebSocketMessageType.Text, true, default);
 
+                /*
                 // receiving handshake confirmation
                 var result = await _ws.ReceiveAsync(_receiveBuffer, default);
                 string echo = Encoding.UTF8.GetString(_receiveBuffer, 0, result.Count);
@@ -117,21 +98,22 @@ namespace HandTrackingModule.Websocket
                 }
                 else
                 {
-                    // throw new Exception("Handshake failed");
+                    throw new Exception("Handshake failed");
                 }
+                */
             }
             catch (Exception e)
             {
                 return HandleException(e);
             }
-            return WSRC.Success;
+            return Wsrc.Success;
         }
 
         /// <summary>
         /// Attempts to wait for data to be received from the websocket
         /// </summary>
         /// <returns>task status code</returns>
-        public async Task<WSRC> ReceiveData()
+        public async Task<Wsrc> ReceiveData()
         {
             try
             {
@@ -150,6 +132,7 @@ namespace HandTrackingModule.Websocket
                     {
                         _semaphore.Release();
                     }
+                    if (_jsonString == "") { throw new Exception("No data received"); }
                     // delegate call for HandTrackingSystem
                     DataReceivedDel(_jsonString);
                 }
@@ -162,14 +145,14 @@ namespace HandTrackingModule.Websocket
             {
                 return HandleException(e);
             }
-            return WSRC.Success;
+            return Wsrc.Success;
         }
 
         /// <summary>
         /// Attempts to close the active connection
         /// </summary>
         /// <returns></returns>
-        public async Task<WSRC> CloseSocket()
+        public async Task<Wsrc> CloseSocket()
         {
             try
             {
@@ -181,7 +164,7 @@ namespace HandTrackingModule.Websocket
             {
                 return HandleException(e);
             }
-            return WSRC.Success;
+            return Wsrc.Success;
         }
     }
 }
